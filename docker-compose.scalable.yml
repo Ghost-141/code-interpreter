@@ -45,7 +45,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: redis
-    command: redis-server --requirepass localdev
+    command: redis-server --requirepass ${REDIS_PASSWORD:-localdev}
     ports:
       - 6379:6379
     healthcheck:
@@ -91,7 +91,7 @@ services:
       - FILE_SERVER_PORT=3000
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=localdev
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-localdev}
       - CODEAPI_INTERNAL_SERVICE_TOKEN=${CODEAPI_INTERNAL_SERVICE_TOKEN:-localdev-internal-service-token}
     ulimits:
       nofile:
@@ -119,7 +119,7 @@ services:
       - TOOL_CALL_SESSION_EXPIRY=600
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=localdev
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-localdev}
       - CODEAPI_INTERNAL_SERVICE_TOKEN=${CODEAPI_INTERNAL_SERVICE_TOKEN:-localdev-internal-service-token}
     ulimits:
       nofile:
@@ -144,12 +144,39 @@ services:
       - "3112-3119:3112"  # Port range for multiple instances
     environment:
       - LOCAL_MODE=${LOCAL_MODE:-true}
+      - CODEAPI_HARDENED_SANDBOX_MODE=${CODEAPI_HARDENED_SANDBOX_MODE:-true}
+      # JWT verification config — this block was missing entirely from this
+      # file (present in base docker-compose.yaml but never ported over),
+      # which is why the api container failed to start with "No CodeAPI
+      # JWT verification keys configured" even with a correct .env.
+      - CODEAPI_AUTH_PROVIDER=${CODEAPI_AUTH_PROVIDER:-}
+      - CODEAPI_ALLOW_AUTH_PROVIDER_NONE=${CODEAPI_ALLOW_AUTH_PROVIDER_NONE:-}
+      - CODEAPI_JWT_ISSUER=${CODEAPI_JWT_ISSUER:-}
+      - CODEAPI_JWT_AUDIENCE=${CODEAPI_JWT_AUDIENCE:-}
+      - CODEAPI_JWT_ALLOWED_ALGS=${CODEAPI_JWT_ALLOWED_ALGS:-}
+      - CODEAPI_JWT_CLOCK_SKEW_SECONDS=${CODEAPI_JWT_CLOCK_SKEW_SECONDS:-}
+      - CODEAPI_JWT_MAX_TTL_SECONDS=${CODEAPI_JWT_MAX_TTL_SECONDS:-}
+      - CODEAPI_JWT_KEY_CACHE_TTL_SECONDS=${CODEAPI_JWT_KEY_CACHE_TTL_SECONDS:-}
+      - CODEAPI_JWT_JWKS_JSON=${CODEAPI_JWT_JWKS_JSON:-}
+      - CODEAPI_JWT_PUBLIC_KEYS_DIR=${CODEAPI_JWT_PUBLIC_KEYS_DIR:-}
+      - CODEAPI_JWT_PUBLIC_KEY=${CODEAPI_JWT_PUBLIC_KEY:-}
+      - CODEAPI_JWT_KID=${CODEAPI_JWT_KID:-}
+      - CODEAPI_JWT_KEY_ID=${CODEAPI_JWT_KEY_ID:-}
+      - CODEAPI_JWT_HS256_KID=${CODEAPI_JWT_HS256_KID:-}
+      - CODEAPI_JWT_HS256_SECRET=${CODEAPI_JWT_HS256_SECRET:-}
+      - CODEAPI_JWT_SINGLE_TENANT_ID=${CODEAPI_JWT_SINGLE_TENANT_ID:-}
+      - CODEAPI_TENANT_ISOLATION_STRICT=${CODEAPI_TENANT_ISOLATION_STRICT:-}
+      - EXECUTION_MANIFEST_TTL_SECONDS=${EXECUTION_MANIFEST_TTL_SECONDS:-}
+      - EXECUTION_MANIFEST_MAX_UPLOAD_BYTES=${EXECUTION_MANIFEST_MAX_UPLOAD_BYTES:-}
+      - EXECUTION_MANIFEST_MAX_OUTPUT_FILES=${EXECUTION_MANIFEST_MAX_OUTPUT_FILES:-}
+      - EXECUTION_MANIFEST_MAX_REQUESTS=${EXECUTION_MANIFEST_MAX_REQUESTS:-}
+      - CODEAPI_HTTP_JSON_LIMIT=${CODEAPI_HTTP_JSON_LIMIT:-50mb}
       - FILE_SERVER_URL=http://file_server:3000
       - TOOL_CALL_SERVER_URL=http://tool_call_server:3033
       - CODEAPI_INTERNAL_SERVICE_TOKEN=${CODEAPI_INTERNAL_SERVICE_TOKEN:-localdev-internal-service-token}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=localdev
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-localdev}
       - PORT=3112
       # Note: No SANDBOX_ENDPOINT - API doesn't talk to sandbox directly
       # Note: No PYTHON_CONCURRENCY - API doesn't process jobs
@@ -195,7 +222,7 @@ services:
       - CODEAPI_INTERNAL_SERVICE_TOKEN=${CODEAPI_INTERNAL_SERVICE_TOKEN:-localdev-internal-service-token}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=localdev
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-localdev}
       - PYTHON_CONCURRENCY=1
       - OTHER_CONCURRENCY=8
       - JOB_WINDOW=1000
