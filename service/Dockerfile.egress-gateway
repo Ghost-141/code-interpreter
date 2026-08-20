@@ -21,7 +21,14 @@ COPY shared /shared
 EXPOSE 3190
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:3190/health || exit 1
-CMD ["bun", "run", "src/egress-gateway.ts"]
+# X-CodeAPI-Egress-Grant carries the exec's full encrypted input_files
+# manifest (see egress-grant.ts) on every file request, so its size scales
+# with session file count (SANDBOX_MAX_INPUT_FILES, default 256) rather than
+# with any single file's size. Bun's default --max-http-header-size (16KiB)
+# rejects sessions near that file-count ceiling with 431; this can only be
+# raised via the CLI flag (a JS-level http.createServer maxHeaderSize option
+# is silently ignored by Bun). Shell form so the env var expands.
+CMD bun --max-http-header-size=${EGRESS_GATEWAY_MAX_HEADER_BYTES:-262144} run src/egress-gateway.ts
 
 FROM base AS development
 ENV NODE_ENV=development
@@ -29,4 +36,4 @@ COPY --from=install /temp/dev/node_modules node_modules
 COPY service/src ./src
 COPY shared /shared
 EXPOSE 3190 9230
-CMD ["bun", "run", "--watch", "src/egress-gateway.ts"]
+CMD bun --max-http-header-size=${EGRESS_GATEWAY_MAX_HEADER_BYTES:-262144} run --watch src/egress-gateway.ts
