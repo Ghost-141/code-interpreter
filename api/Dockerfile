@@ -82,6 +82,11 @@ RUN apt-get update && \
     file \
     jq \
     poppler-utils \
+    pandoc \
+    qpdf \
+    libreoffice-writer \
+    libreoffice-calc \
+    libreoffice-impress \
     fonts-dejavu \
     fonts-liberation \
     libnl-route-3-200 \

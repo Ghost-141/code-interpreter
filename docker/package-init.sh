@@ -213,6 +213,10 @@ if [ -f "$PIP_PATH" ]; then
         chdb==4.1.6 \
         markitdown==0.0.2 \
         python-pptx \
+        lxml \
+        defusedxml \
+        pdfplumber \
+        pypdf \
         xlsxwriter \
         docx2python \
         docxtpl \

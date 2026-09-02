@@ -72,6 +72,9 @@ const SUPPORTED_OUTPUT_EXTENSIONS = new Set([
   '.bat', '.cmd', '.deb', '.log', '.rpm', '.vbs',
 ]);
 
+/** Source files used to generate an artifact are implementation details, not outputs. */
+const BLOCKED_GENERATED_OUTPUT_EXTENSIONS = new Set(['.js', '.mjs', '.cjs']);
+
 type EgressAuditFields = {
   execHash?: string;
   requestExecHash?: string;
@@ -242,6 +245,9 @@ function assertOutputFilenameAllowed(name: string): void {
   if (!isDirkeepName(name)) {
     const basename = path.posix.basename(name);
     const ext = path.posix.extname(basename).toLowerCase();
+    if (BLOCKED_GENERATED_OUTPUT_EXTENSIONS.has(ext)) {
+      throw new EgressGrantError('scope_mismatch', 'Source-code output files are not allowed');
+    }
     const dottedBasename = `.${basename}`;
     const allowed =
       (ext !== '' && SUPPORTED_OUTPUT_EXTENSIONS.has(ext)) ||

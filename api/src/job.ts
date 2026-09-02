@@ -58,6 +58,9 @@ export {
 
 const AUTO_LOAD_DIRKEEP_TIMEOUT_MS = 10000;
 
+/** Source files used to generate an artifact are implementation details, not outputs. */
+const BLOCKED_GENERATED_OUTPUT_EXTENSIONS = new Set(['.js', '.mjs', '.cjs']);
+
 /**
  * Bridges a `fetch` response body to a Node-stream Readable. The types at the
  * module boundary (Node's `stream/web` vs. lib.dom) don't overlap cleanly,
@@ -560,6 +563,9 @@ const SUPPORTED_EXTENSIONS = new Set([
 function isSupportedOutputFilename(name: string): boolean {
   const basename = path.basename(name);
   const ext = path.extname(basename).toLowerCase();
+  if (BLOCKED_GENERATED_OUTPUT_EXTENSIONS.has(ext)) {
+    return false;
+  }
   const dottedBasename = `.${basename}`;
   return (
     (ext !== '' && SUPPORTED_EXTENSIONS.has(ext)) ||
