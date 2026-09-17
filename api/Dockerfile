@@ -89,6 +89,15 @@ RUN apt-get update && \
     libreoffice-impress \
     fonts-dejavu \
     fonts-liberation \
+    fonts-crosextra-carlito \
+    fonts-crosextra-caladea \
+    zip \
+    unzip \
+    imagemagick \
+    tesseract-ocr \
+    tesseract-ocr-eng \
+    tesseract-ocr-ben \
+    debianutils \
     libnl-route-3-200 \
     libprotobuf32 \
     libffi8 \
@@ -108,6 +117,25 @@ RUN apt-get update && \
 # coreutils) — mawk has no system() / getline-from-command extensions
 # in its minimal build.
 RUN [ -x /usr/bin/mawk ] && ln -sf /usr/bin/mawk /usr/bin/awk
+
+# The sandbox mounts only a few files under /etc, so Debian's
+# update-alternatives links (/usr/bin/which -> /etc/alternatives/which,
+# /usr/bin/convert -> /etc/alternatives/convert, ...) dangle inside NsJail and
+# those commands report "not found". Point every such link at its real binary.
+# Debian bookworm's ImageMagick 6 also lacks the IM7 `magick` entry point the
+# document skills call; IM6's convert takes the same argument order.
+RUN find /usr/bin /usr/sbin -lname '/etc/alternatives/*' | while read -r link; do \
+        target=$(readlink -f "$link"); \
+        [ -e "$target" ] && ln -sf "$target" "$link"; \
+    done; \
+    [ -e /usr/bin/which ] || ln -sf /usr/bin/which.debianutils /usr/bin/which; \
+    convert_bin=$(readlink -f "$(command -v convert)") \
+    && ln -sf "$convert_bin" /usr/bin/magick \
+    && ! find /usr/bin /usr/sbin -lname '/etc/*' | grep . \
+    && [ -f /etc/libreoffice/registry/main.xcd ] \
+    && for tool in which zip unzip tesseract magick soffice; do \
+        command -v "$tool" >/dev/null || { echo "missing sandbox tool: $tool" >&2; exit 1; }; \
+    done
 
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 

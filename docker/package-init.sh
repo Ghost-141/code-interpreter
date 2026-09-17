@@ -159,6 +159,9 @@ chmod +x "$PKG_DEST/run"
 
 echo "PATH=${PKG_DEST}/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:." > "$PKG_DEST/.env"
 
+# CPython's `make install` only creates python3; models routinely call bare `python`.
+ln -sf python3 "$PKG_DEST/bin/python"
+
 echo "Python ${PYTHON_VERSION} installed"
 
 # ==============================
@@ -233,7 +236,6 @@ if [ -f "$PIP_PATH" ]; then
         qrcode \
         fonttools \
         pytesseract \
-        pdfminer \
         vsdx \
         rasterio \
         rioxarray \
@@ -250,6 +252,18 @@ if [ -f "$PIP_PATH" ]; then
     fi
 
     "$PIP_PATH" install --upgrade six 2>/dev/null || true
+
+    # A package that installs its own top-level `pdfminer` (the unmaintained
+    # 2019 `pdfminer` dist) overwrites pdfminer.six's modules and breaks
+    # markitdown and pdfplumber at import time. Fail the build instead of
+    # shipping a runtime where the document skills cannot read files.
+    if [ "$PYTHON_PACKAGES_INSTALLED" = true ] && ! "${PKG_DEST}/bin/python3" -c \
+        "import markitdown, pdfplumber, pptx, docx, openpyxl, pypdf, pytesseract" ; then
+        echo "ERROR: document-processing Python packages failed to import"
+        PYTHON_PACKAGES_INSTALLED=false
+        INSTALL_FAILED=true
+    fi
+
     if [ "$PYTHON_PACKAGES_INSTALLED" = true ]; then
         echo "$(date +%s)000" > "$PKG_DEST/.package-installed"
     fi

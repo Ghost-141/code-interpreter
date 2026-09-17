@@ -49,7 +49,7 @@ services:
     ports:
       - 6379:6379
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "localdev", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-localdev}", "ping"]
       interval: 5s
       timeout: 3s
       retries: 3
