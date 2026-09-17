@@ -263,6 +263,21 @@ export async function execute(opts: ExecuteOptions, setupGate: NsJailSetupGate =
     enableToolCallSocket,
   });
 
+  /* The per-job memory ceiling is set in three places that can disagree:
+   * `run_memory_limit` (env), the `cgroup_mem_max` default in sandbox.cfg, and
+   * whatever the kernel ends up writing to the job's memory.max. When a job is
+   * SIGKILLed the kernel reports only the dead process, not the limit it hit,
+   * which makes a misconfigured ceiling indistinguishable from a memory-hungry
+   * job. Log what we requested so the two can be told apart. */
+  logger.debug({
+    memoryLimit,
+    useCgroupV2: config.use_cgroupv2,
+    cgroupMemMaxArg: nsjailArgs.includes('--cgroup_mem_max')
+      ? nsjailArgs[nsjailArgs.indexOf('--cgroup_mem_max') + 1]
+      : null,
+    configMemMax: readBaseConfig().match(/^cgroup_mem_max:\s*(\d+)/m)?.[1] ?? null,
+  }, 'Job memory limits');
+
   const startTime = Date.now();
   const hasStdin = stdin !== undefined && stdin.length > 0;
 
