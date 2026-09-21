@@ -211,6 +211,7 @@ install_python_packages() {
         python-barcode \
         qrcode \
         fonttools \
+        uharfbuzz \
         pytesseract \
         vsdx \
         rasterio \

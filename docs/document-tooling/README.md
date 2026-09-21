@@ -88,6 +88,8 @@ skill calls the IM7 entry point that bookworm does not ship.
 | `zip`, `unzip` | docx and pptx skills | Editing an existing file is `unzip` → edit the XML → `zip`. Without them the model falls back to Python's zipfile and often fails first |
 | `tesseract-ocr` + `eng`, `ben` | pdf skill | `pytesseract` was installed with no engine behind it |
 | `imagemagick` | pdf skill | Page-image cropping |
+| `libraqm0` | anything drawing Bangla with Pillow | Without it Pillow draws Bangla unshaped: conjuncts fall apart and ি lands after its consonant |
+| `uharfbuzz` (Python) | pdf-to-docx skill | Verifies each Bangla word recovered from a PDF by shaping it again. Without it recovery still runs, unverified |
 | `docx` (npm) | docx skill | Its document builder. Sandboxes have no network, so it cannot be installed at run time |
 | `react`, `react-dom`, `react-icons` (npm) | pptx skill | Icon rendering |
 | `python` → `python3` symlink | everything | Models routinely call bare `python`, which CPython's `make install` does not create |
@@ -95,6 +97,50 @@ skill calls the IM7 entry point that bookworm does not ship.
 The build fails unless `markitdown`, `pdfplumber`, `pptx`, `docx`, `openpyxl`,
 `pypdf` and `pytesseract` all import. That check is what would have caught the
 pdfminer conflict, which was silent until a user asked for a file to be read.
+
+## Bangla fonts and OCR
+
+Most Bangla PDFs from Bangladeshi offices are produced by wkhtmltopdf or Qt,
+which subset the font down to bare outlines and map conjuncts to no character.
+Copied as-is, `বিশ্ববিদ্যালয়` reaches Word as `িব(cid:10)িবদ(cid:11)ালয়`. The
+pdf-to-docx skill recovers the real text by matching each embedded glyph
+against **the same font installed in the sandbox**, so the font set is part of
+the conversion, not decoration: a PDF set in a font missing here cannot be
+recovered, and the skill refuses to deliver it rather than ship garbled text.
+
+[`docker/fonts/`](../../docker/fonts/) installs them at build time:
+
+- `fonts.manifest` — what `install-fonts.sh` installs: Debian packages, and
+  direct downloads pinned by sha256. A changed file fails the build.
+- `fonts.tsv` — the same list for people: family, source, licence, size.
+- `60-bangladesh-fonts.conf` — fontconfig aliases for fonts that cannot be
+  installed: Vrinda, Nirmala UI and Shonar Bangla (Microsoft, Windows-only) and
+  SutonnyOMJ go to the closest free Bangla face; Segoe UI goes to Selawik. It
+  also makes Wine's Tahoma, Symbol and Wingdings visible.
+
+The image uses `FONT_SET=recommended`:
+
+| Set | What | Size |
+|---|---|---|
+| required | SolaimanLipi, Nikosh, Kalpurush, Siyam Rupali, Hind Siliguri, Noto Sans/Serif Bengali, Mukti, Lohit; Carlito, Caladea, Liberation, Gelasio, Selawik, URW base 35, Wine's Tahoma/Symbol/Wingdings | ~72 MB |
+| recommended | adds the Nikosh variants, AdorshoLipi, Tiro Bangla, Baloo Da 2, Anek Bangla, Galada, Atma, Mina, Croscore, emoji | ~27 MB |
+| all | adds Noto CJK, maths and LaTeX fonts, legacy ANSI Bangla | ~457 MB more |
+
+**Licences.** Nothing is committed to this repository; every file is fetched
+from its publisher. Nikosh and its variants are CC BY-NC-ND 3.0 —
+non-commercial, unmodified — which fits this service as long as it stays
+non-commercial. SutonnyMJ and the other Bijoy fonts are commercial and are not
+installed; PDFs set in them cannot be recovered.
+
+OmicronLab, which hosts most of the Bangla fonts, drops TLS connections
+intermittently. The installer retries, and `FONT_CACHE=<dir>` points it at a
+local copy of the files for a build that must not depend on it.
+
+**OCR.** Tesseract's `ben` and `eng` models are replaced by `tessdata_best`,
+pinned to a commit and checked by sha256. On UGC circulars rendered at 300 dpi
+it made 0.8% Bangla character errors against 3.4% for Debian's model; on a
+degraded scan-like page, 4.5% against 7.7%. OCR is only for scans: a PDF with a
+text layer converts exactly, and more accurately than any OCR.
 
 ## Job limits
 
@@ -150,6 +196,9 @@ python3 -c "import markitdown, pdfplumber, pptx, docx, openpyxl, pypdf, pytesser
 node -e "for (const m of ['docx','react','react-dom','react-icons/fa','pptxgenjs','sharp']) require(m)"
 for t in which python zip unzip tesseract magick soffice; do command -v $t || echo "MISSING $t"; done
 fc-match Calibri; fc-match Cambria          # expect Carlito, Caladea
+fc-match SolaimanLipi; fc-match Nikosh      # expect themselves, not DejaVu
+tesseract --list-langs | grep -x ben
+python3 -c "import fontTools, uharfbuzz"
 python3 -c "import getpass; print(getpass.getuser())"
 df -h /tmp | tail -1                        # expect 256M
 ```

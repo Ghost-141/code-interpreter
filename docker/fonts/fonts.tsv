@@ -1,0 +1,68 @@
+family	file	source	licence	tier	required	size_kb	sha256	note
+SolaimanLipi	SolaimanLipi_20-04-07.ttf	https://www.omicronlab.com/download/fonts/SolaimanLipi_20-04-07.ttf	OFL 1.0	A	yes	244	16bbf4f0140dab8fcf53ab34a923674ea8c9de2f8583d110c7e62b0094a22fe6	
+Nikosh	Nikosh.ttf	https://www.omicronlab.com/download/fonts/Nikosh.ttf	CC BY-NC-ND 3.0	A	yes	777	fcebcd9cae1a833a62ae32787dbe03e71df2bc76b4dbc07c1d51cab461bdd4ca	non-commercial, no derivatives
+NikoshBAN	NikoshBAN.ttf	https://www.omicronlab.com/download/fonts/NikoshBAN.ttf	CC BY-NC-ND 3.0	A	recommended	779	58368572c0492c722c1c283c4e83fa09b4c9de840fb2f4c165f29cdc5ce222dd	non-commercial, no derivatives
+NikoshLight	NikoshLight.ttf	https://www.omicronlab.com/download/fonts/NikoshLight.ttf	CC BY-NC-ND 3.0	A	recommended	765	ece4fa4e1fca24ab1ef5219994e8bdbe31c34bf3dc92e5ca355e95fd76539ce6	non-commercial, no derivatives
+NikoshLightBAN	NikoshLightBan.ttf	https://www.omicronlab.com/download/fonts/NikoshLightBan.ttf	CC BY-NC-ND 3.0	A	recommended	766	047073cf04633dd2f0f81473e2d39cdc8fc6c42dd6146fd134d7dac57222e00e	non-commercial, no derivatives
+NikoshGrameem	NikoshGrameen.ttf	https://www.omicronlab.com/download/fonts/NikoshGrameen.ttf	CC BY-NC-ND 3.0	A	recommended	786	039c5432ea3ee41266b11c8c603a2df9f4d14eafede4b4f4fc0f1b59354d9935	family name is spelled Grameem in the file
+Kalpurush	kalpurush.ttf	https://www.omicronlab.com/download/fonts/kalpurush.ttf	OFL 1.0	A	yes	307	83613a03e53aad8337f2be9fb974409a23c1d99b3b4b494567ba9d156c492b01	
+Siyam Rupali	Siyamrupali.ttf	https://www.omicronlab.com/download/fonts/Siyamrupali.ttf	GPL	A	yes	392	54a85c66ad1e6f0c50d3bda85eba5a4975fe49d06819d23230a15f3d7f0573ae	
+AdorshoLipi	AdorshoLipi_20-07-2007.ttf	https://www.omicronlab.com/download/fonts/AdorshoLipi_20-07-2007.ttf	GPL 2+	A	recommended	298	2dd6fcf810b9c4414d68c939bce035b5977d8d3dafa483afc82442743f5696fd	
+Mukti Narrow	muktinarrow.ttf	https://www.omicronlab.com/download/fonts/muktinarrow.ttf	GPL	A	recommended	181	fc923f78108b2c0f9ca0ea659931535ce831908451daa38463a4bf10496d7add	Mukti itself comes from fonts-beng-extra
+Sagar	sagarnormal.ttf	https://www.omicronlab.com/download/fonts/sagarnormal.ttf	GPL	A	recommended	176	7f653e88728510b3d56ab067de843b6223fd84eb9a781d665a10674ff94c1004	
+BenSen	BenSen.ttf	https://www.omicronlab.com/download/fonts/BenSen.ttf	GPL 2+	A	optional	270	a366eeb443b4c80b369665098bb9500382a1aa10ece11e503c93faab7f5e4d82	also declares family SolaimanLipi; fc-list :family=SolaimanLipi returns it
+BenSenHandwriting	BenSenHandwriting.ttf	https://www.omicronlab.com/download/fonts/BenSenHandwriting.ttf	GPL 2+	A	optional	246	5ece19ccd529d8f2dff12b8a082ab7439f38488f0ef740f7f9826c72cbf89e27	also declares families BenSen and SolaimanLipi
+Bangla	Bangla.ttf	https://www.omicronlab.com/download/fonts/Bangla.ttf	GPL	A	recommended	137	8038ec9a671c667632c285810c35433a31751ca3bd0127535595c39f1fd28ded	
+AponaLohit	AponaLohit.ttf	https://www.omicronlab.com/download/fonts/AponaLohit.ttf	GPL	A	recommended	333	e40b3ce962527669c8c7a99d2f599ee178b332f55b63433659519c464eca4c74	
+Ekushey Lohit	Lohit_14-04-2007.ttf	https://www.omicronlab.com/download/fonts/Lohit_14-04-2007.ttf	OFL	A	recommended	335	e01e26738d71aa8e3c838fb5111e576a9d23629accb7337d269a4fec2eb54c2d	
+Kalpurush ANSI	kalpurush ANSI.ttf	https://www.omicronlab.com/download/fonts/kalpurush%20ANSI.ttf	unstated (distributed free by OmicronLab)	A	optional	111	bfb06b2360a558424c61405a29c24b09c70487757204814c6dd04621a2a9eebc	legacy ANSI encoding
+Siyam Rupali ANSI	Siyam Rupali ANSI.ttf	https://www.omicronlab.com/download/fonts/Siyam%20Rupali%20ANSI.ttf	unstated (distributed free by OmicronLab)	A	optional	91	e434a9b4cdc228ffdc713202eadecbe2387dbbb9392a64e8a560f8ebba9cff30	legacy ANSI encoding
+Hind Siliguri	HindSiliguri-Regular.ttf	https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/hindsiliguri/HindSiliguri-Regular.ttf	OFL 1.1	A	yes	244	45071a7da902a74877f432722f525d00502d61aef71fca4cab3da8a23156c33d	
+Hind Siliguri	HindSiliguri-Bold.ttf	https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/hindsiliguri/HindSiliguri-Bold.ttf	OFL 1.1	A	yes	281	d135765781d1a4aebc7dd4a2af221427ec8689060121d8a48b19bca3eeb3977e	
+Hind Siliguri	HindSiliguri-Light.ttf	https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/hindsiliguri/HindSiliguri-Light.ttf	OFL 1.1	A	recommended	253	9d55d0dcc9b54cb0870ae5d5b24caf8d3ca9f304cd90ee6f4fe1e6c8ef833e5a	
+Hind Siliguri	HindSiliguri-Medium.ttf	https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/hindsiliguri/HindSiliguri-Medium.ttf	OFL 1.1	A	recommended	260	f2759c530d647720a4d4e99faef3c2d150e1452193a9c83fb81c8d29805c13ea	
+Hind Siliguri	HindSiliguri-SemiBold.ttf	https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/hindsiliguri/HindSiliguri-SemiBold.ttf	OFL 1.1	A	recommended	266	92a9a68240883467830b87b2568242a59e68d4535e9e15f087650e12c4aaca83	
+Tiro Bangla	TiroBangla-Regular.ttf	https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/tirobangla/TiroBangla-Regular.ttf	OFL 1.1	A	recommended	316	a763523dc3f90a71962cb8d9400b8f0a86b40b2cb01676f165101a2967127ae4	
+Tiro Bangla	TiroBangla-Italic.ttf	https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/tirobangla/TiroBangla-Italic.ttf	OFL 1.1	A	recommended	322	deb8330a56697cfabef8ff393c6d36af60531229b138bf9a3ffe834330cb03e1	
+Baloo Da 2	BalooDa2[wght].ttf	https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/balooda2/BalooDa2%5Bwght%5D.ttf	OFL 1.1	A	recommended	441	8b62a8c4dbe659be5e4d40c19b7b3012120335b333205c5aa101b45cdb449cff	variable
+Anek Bangla	AnekBangla[wdth,wght].ttf	https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/anekbangla/AnekBangla%5Bwdth%2Cwght%5D.ttf	OFL 1.1	A	recommended	1313	8b4ec2eaf7400ea9903718a4addf3135475292e6e0b04db7735d0f999289d919	variable
+Galada	Galada-Regular.ttf	https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/galada/Galada-Regular.ttf	OFL 1.1	A	recommended	183	acc22b41ee470dc542e15b5f8907c7fbebef1b9c01eb20e4127bdbf052b006ee	
+Atma	Atma-Regular.ttf	https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/atma/Atma-Regular.ttf	OFL 1.1	A	recommended	215	3ddd9e02b4b6077b25c07f5d1f4411c9071e5030a4124d77dcd5a04fa292b921	
+Atma	Atma-Bold.ttf	https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/atma/Atma-Bold.ttf	OFL 1.1	A	recommended	211	d55399f5bcdb78f60da7dbd6c5abfdc92510154361586ad1b07bca7ee739dba6	
+Atma	Atma-Light.ttf	https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/atma/Atma-Light.ttf	OFL 1.1	A	optional	214	44d29f1887173928289709a47ef6b6b5259209ac2349a8622922316a697f497c	
+Atma	Atma-Medium.ttf	https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/atma/Atma-Medium.ttf	OFL 1.1	A	optional	215	369d9788c926ea6f3650999617beb348238f370d65b3d5d180d638c82ea3d82a	
+Atma	Atma-SemiBold.ttf	https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/atma/Atma-SemiBold.ttf	OFL 1.1	A	optional	215	15b935a57290a675391c6ca6bac4bd7fc746ead44e35495d6dc2562b2265a28f	
+Mina	Mina-Regular.ttf	https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/mina/Mina-Regular.ttf	OFL 1.1	A	recommended	148	1ca8f5fb637e21fd6ce7cd4cc230b7284a90524ce93a696b838bbe3edd25ab7c	
+Mina	Mina-Bold.ttf	https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/mina/Mina-Bold.ttf	OFL 1.1	A	recommended	149	eb125869e00d5e2fa33baa03344923141f31a5f10e1ae3fa65143cb2739fc318	
+Alkatra	Alkatra[wght].ttf	https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/alkatra/Alkatra%5Bwght%5D.ttf	OFL 1.1	A	recommended	927	af6d39e8085eda5db66b19100571709bd41c41938400f2c365dadde86dd28466	variable
+Google Sans	GoogleSans[GRAD,opsz,wght].ttf	https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/googlesans/GoogleSans%5BGRAD%2Copsz%2Cwght%5D.ttf	OFL 1.1	A	optional	4858	d0a87d835a944b8b40d0e82a5651bb59ab97b936a2aeed5946eb57e7b2a3a90a	variable, 5 MB, has Bengali
+Google Sans	GoogleSans-Italic[GRAD,opsz,wght].ttf	https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/googlesans/GoogleSans-Italic%5BGRAD%2Copsz%2Cwght%5D.ttf	OFL 1.1	A	optional	4960	b6662abd2131cad1b248750149a7f2b644f871ebcc9af7fe4cd1135cd290b6d1	variable, 5 MB
+Gelasio	Gelasio[wght].ttf	https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/gelasio/Gelasio%5Bwght%5D.ttf	OFL 1.1	B	yes	165	4daecea457258c9ebeb8bc99ed3fd24353618bfad3ea4b93fa0b5d0468fc04e4	metric-compatible with Georgia
+Gelasio	Gelasio-Italic[wght].ttf	https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/gelasio/Gelasio-Italic%5Bwght%5D.ttf	OFL 1.1	B	yes	170	52559e845a4d33514e5f93bb9ae7dbeae1894a53f2c565a15f18af40cd337c09	metric-compatible with Georgia
+STIX Two Text	STIXTwoText[wght].ttf	https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/stixtwotext/STIXTwoText%5Bwght%5D.ttf	OFL 1.1	C	optional	409	7962b8b7811e6a896c9a91a0bccbb5241047770eb24d4997c5cb5fe21d5c0df2	math/scientific
+STIX Two Text	STIXTwoText-Italic[wght].ttf	https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/stixtwotext/STIXTwoText-Italic%5Bwght%5D.ttf	OFL 1.1	C	optional	444	88c0e2e316eaff56eddc9e51e4850317e2a1e490bbf758b2dec4793aedba9c74	math/scientific
+STIX Two Math	STIXTwoMath-Regular.ttf	https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/stixtwomath/STIXTwoMath-Regular.ttf	OFL 1.1	C	optional	1482	562551b15b836e6e01d1b7350909baf3c8c8d83260c1190fbf4544333e6936de	math/scientific
+Selawik	selawk.ttf,selawkb.ttf,selawkl.ttf,selawksb.ttf,selawksl.ttf	https://github.com/microsoft/Selawik/releases/download/1.01/Selawik_Release.zip	OFL 1.1	B	yes	518	3f62c51e05e3b5a1e6241cf92a371f0be2ea1183aa87b30718bbd40832a8d423	metric-compatible with Segoe UI
+Noto Sans/Serif Bengali, Noto Naskh Arabic, Noto Nastaliq Urdu, Noto Sans Symbols, …	fonts-noto-core	debian trixie: fonts-noto-core	OFL 1.1	A	yes	42598	-	
+Mukti, Mitra, Ani, Likhan, Akaash, Jamrul	fonts-beng-extra	debian trixie: fonts-beng-extra	GPL	A	yes	1024	-	
+Lohit Bengali	fonts-lohit-beng-bengali	debian trixie: fonts-lohit-beng-bengali	OFL 1.1	A	yes	205	-	
+Carlito (= Calibri metrics)	fonts-crosextra-carlito	debian trixie: fonts-crosextra-carlito	OFL 1.1	B	yes	2662	-	
+Caladea (= Cambria metrics)	fonts-crosextra-caladea	debian trixie: fonts-crosextra-caladea	Apache 2.0	B	yes	307	-	
+Liberation Sans/Serif/Mono (= Arial/Times New Roman/Courier New)	fonts-liberation	debian trixie: fonts-liberation	OFL 1.1	B	yes	4301	-	already in sandbox
+DejaVu Sans/Serif/Sans Mono (closest to Verdana)	fonts-dejavu-core	debian trixie: fonts-dejavu-core	Bitstream Vera	B	yes	2253	-	already in sandbox (fonts-dejavu)
+Nimbus Sans/Roman/Mono PS, Nimbus Sans Narrow, Standard Symbols PS, … (PDF base-14)	fonts-urw-base35	debian trixie: fonts-urw-base35	AGPL + font exception	B	yes	15565	-	Helvetica/Times/Courier/Symbol/ZapfDingbats, Arial Narrow
+Tahoma, Symbol, Wingdings, Webdings, Marlett	fonts-wine	debian trixie: fonts-wine	LGPL 2.1+	B	yes	1024	-	metric-compatible Wine clones
+OpenSymbol	fonts-opensymbol	debian trixie: fonts-opensymbol	LGPL 3	B	yes	307	-	usually pulled in by LibreOffice
+Arimo, Tinos, Cousine (= Arial/Times/Courier metrics)	fonts-croscore	debian trixie: fonts-croscore	Apache 2.0	B	recommended	5325	-	second opinion to Liberation
+Comic Neue (Comic Sans look-alike, not metric)	fonts-comic-neue	debian trixie: fonts-comic-neue	OFL 1.1	B	recommended	512	-	
+Noto Color Emoji	fonts-noto-color-emoji	debian trixie: fonts-noto-color-emoji	OFL 1.1	C	recommended	11059	-	
+Noto Mono	fonts-noto-mono	debian trixie: fonts-noto-mono	OFL 1.1	C	recommended	1126	-	
+Noto Sans * UI	fonts-noto-ui-core	debian trixie: fonts-noto-ui-core	OFL 1.1	C	optional	5018	-	
+Noto Sans/Serif CJK	fonts-noto-cjk	debian trixie: fonts-noto-cjk	OFL 1.1	C	optional	91238	-	
+Noto extra weights and rare scripts	fonts-noto-extra	debian trixie: fonts-noto-extra	OFL 1.1	C	optional	334234	-	not recommended: size
+Latin Modern (TeX)	fonts-lmodern	debian trixie: fonts-lmodern	GUST	C	optional	10752	-	LaTeX-made PDFs
+STIX (v1)	fonts-stix	debian trixie: fonts-stix	OFL 1.1	C	optional	2765	-	
+Symbola	fonts-symbola	debian trixie: fonts-symbola	free use	C	optional	3072	-	
+Amiri (Arabic)	fonts-hosny-amiri	debian trixie: fonts-hosny-amiri	OFL 1.1	C	optional	2765	-	
+Scheherazade New (Arabic)	fonts-sil-scheherazade	debian trixie: fonts-sil-scheherazade	OFL 1.1	C	optional	1843	-	
+FreeSans/FreeSerif/FreeMono	fonts-freefont-ttf	debian trixie: fonts-freefont-ttf	GPL 3 + font exception	C	optional	14438	-	

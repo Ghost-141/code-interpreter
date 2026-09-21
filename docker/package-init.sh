@@ -235,6 +235,7 @@ if [ -f "$PIP_PATH" ]; then
         python-barcode \
         qrcode \
         fonttools \
+        uharfbuzz \
         pytesseract \
         vsdx \
         rasterio \
@@ -258,7 +259,7 @@ if [ -f "$PIP_PATH" ]; then
     # markitdown and pdfplumber at import time. Fail the build instead of
     # shipping a runtime where the document skills cannot read files.
     if [ "$PYTHON_PACKAGES_INSTALLED" = true ] && ! "${PKG_DEST}/bin/python3" -c \
-        "import markitdown, pdfplumber, pptx, docx, openpyxl, pypdf, pytesseract" ; then
+        "import markitdown, pdfplumber, pptx, docx, openpyxl, pypdf, pytesseract, fontTools, uharfbuzz" ; then
         echo "ERROR: document-processing Python packages failed to import"
         PYTHON_PACKAGES_INSTALLED=false
         INSTALL_FAILED=true

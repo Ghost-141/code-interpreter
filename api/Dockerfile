@@ -97,6 +97,7 @@ RUN apt-get update && \
     tesseract-ocr \
     tesseract-ocr-eng \
     tesseract-ocr-ben \
+    libraqm0 \
     debianutils \
     libnl-route-3-200 \
     libprotobuf32 \
@@ -106,6 +107,39 @@ RUN apt-get update && \
     && libffi=$(find /usr/lib -name 'libffi.so.8' -print -quit) \
     && { [ -n "$libffi" ] || { echo "libffi.so.8 not found" >&2; exit 1; }; } \
     && ln -sf "$libffi" "${libffi%.so.8}.so.6"
+
+# Fonts Bangladeshi office documents are set in, and metric-compatible stand-ins
+# for the Microsoft fonts they name. The pdf-to-docx skill matches a PDF's
+# embedded glyphs against the installed original to recover its Bangla text,
+# so a font missing here is text that cannot be recovered. Every download is
+# pinned by sha256; see docs/document-tooling/README.md.
+#
+# Tesseract's `ben` and `eng` models are replaced by tessdata_best, which made
+# about a quarter of the Bangla errors of Debian's models on UGC circulars.
+# curl is needed only for these downloads and is removed again.
+ARG TESSDATA_BEST_COMMIT=e12c65a915945e4c28e237a9b52bc4a8f39a0cec
+COPY docker/fonts /tmp/fonts
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && FONT_SET=recommended sh /tmp/fonts/install-fonts.sh /tmp/fonts/fonts.manifest \
+    && tessdata=/usr/share/tesseract-ocr/5/tessdata \
+    && for model in \
+        "ben 1cd0129288d1f74f6661c35e638e487bd146a66bb732ecd9e011e48dcb0df623" \
+        "eng 8280aed0782fe27257a68ea10fe7ef324ca0f8d85bd2fd145d1c2b560bcb66ba"; do \
+        set -- $model; \
+        curl -fsSL --retry 5 --retry-all-errors -o "/tmp/$1.traineddata" \
+            "https://raw.githubusercontent.com/tesseract-ocr/tessdata_best/${TESSDATA_BEST_COMMIT}/$1.traineddata" \
+        && echo "$2  /tmp/$1.traineddata" | sha256sum -c - \
+        && install -m 0644 "/tmp/$1.traineddata" "$tessdata/$1.traineddata" \
+        && rm -f "/tmp/$1.traineddata" || exit 1; \
+    done \
+    && apt-get purge -y --auto-remove curl \
+    && rm -rf /tmp/fonts /var/lib/apt/lists/* \
+    && for family in SolaimanLipi Nikosh Kalpurush 'Siyam Rupali' 'Noto Sans Bengali' Carlito Caladea; do \
+        fc-match -f '%{family[0]}\n' "$family" | grep -qx "$family" \
+            || { echo "font does not resolve to itself: $family" >&2; exit 1; }; \
+    done \
+    && tesseract --list-langs 2>/dev/null | grep -qx ben
 
 # Restore the standard Debian `awk` -> `mawk` symlink. mawk is Priority:
 # required so its binary is in /usr/bin already, but slim base images skip
