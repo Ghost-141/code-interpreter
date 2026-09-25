@@ -1,0 +1,336 @@
+{
+ "skill": [
+  {
+   "id": "ZSlPbdCmKYrn2g",
+   "name": "xlsx/scripts/fit.py",
+   "size": 10044
+  },
+  {
+   "id": "hCkVWc84XaTZAg",
+   "name": "xlsx/scripts/office/schemas/microsoft/wml-sdtdatahash-2020.xsd",
+   "size": 600
+  },
+  {
+   "id": "vD46FHeur8cfyQ",
+   "name": "xlsx/scripts/office/schemas/microsoft/wml-2012.xsd",
+   "size": 3745
+  },
+  {
+   "id": "mAl0089jjWj9SA",
+   "name": "xlsx/scripts/office/schemas/microsoft/wml-2010.xsd",
+   "size": 26549
+  },
+  {
+   "id": "qVBp92quQRS2CA",
+   "name": "xlsx/scripts/office/schemas/microsoft/wml-cid-2016.xsd",
+   "size": 1002
+  },
+  {
+   "id": "R3VpvzzpRmmIjQ",
+   "name": "xlsx/scripts/office/schemas/microsoft/wml-symex-2015.xsd",
+   "size": 745
+  },
+  {
+   "id": "LI9F3EZNsWPB5g",
+   "name": "xlsx/scripts/office/schemas/microsoft/wml-cex-2018.xsd",
+   "size": 1778
+  },
+  {
+   "id": "sSm4xZZm5fMVDA",
+   "name": "xlsx/scripts/office/schemas/microsoft/wml-2018.xsd",
+   "size": 901
+  },
+  {
+   "id": "vQ49YAESmdxsuw",
+   "name": "xlsx/scripts/office/schemas/mce/mc.xsd",
+   "size": 3127
+  },
+  {
+   "id": "CRDudvwngK6azg",
+   "name": "xlsx/scripts/office/schemas/ecma/fouth-edition/opc-coreProperties.xsd",
+   "size": 2515
+  },
+  {
+   "id": "BeW08G9dLWt0mA",
+   "name": "xlsx/scripts/office/schemas/ecma/fouth-edition/opc-relationships.xsd",
+   "size": 1344
+  },
+  {
+   "id": "YCkWsqPhqHpHbw",
+   "name": "xlsx/scripts/office/schemas/ecma/fouth-edition/opc-contentTypes.xsd",
+   "size": 1963
+  },
+  {
+   "id": "oDB62kYiifF00A",
+   "name": "xlsx/scripts/office/schemas/ecma/fouth-edition/opc-digSig.xsd",
+   "size": 2856
+  },
+  {
+   "id": "iHlIsVMbwbH12Q",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-presentationDrawing.xsd",
+   "size": 535
+  },
+  {
+   "id": "uHkiLgVJludl9A",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-officeDrawing.xsd",
+   "size": 25279
+  },
+  {
+   "id": "9aCdIvnpS5Yq8w",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-customXmlSchemaProperties.xsd",
+   "size": 880
+  },
+  {
+   "id": "6zCiTc4Ofuwjfw",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/pml.xsd",
+   "size": 83612
+  },
+  {
+   "id": "MWqPOgQzQdx3Qg",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-lockedCanvas.xsd",
+   "size": 624
+  },
+  {
+   "id": "PZ6xfxUknJgTKw",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-chart.xsd",
+   "size": 74984
+  },
+  {
+   "id": "b0PhoxMbfZ93sg",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-chartDrawing.xsd",
+   "size": 6956
+  },
+  {
+   "id": "GaLhIOSWlxsmgg",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/sml.xsd",
+   "size": 242277
+  },
+  {
+   "id": "nhGxTMOqYg5aXA",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-spreadsheetDrawing.xsd",
+   "size": 5712
+  },
+  {
+   "id": "zxmVInFiB0YB6w",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/wml.xsd",
+   "size": 171367
+  },
+  {
+   "id": "pbz9kxl2MUhQhg",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-picture.xsd",
+   "size": 1231
+  },
+  {
+   "id": "EdE0LKJ62LMm4g",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-diagram.xsd",
+   "size": 51302
+  },
+  {
+   "id": "VdfBYfOL56W7Gw",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-main.xsd",
+   "size": 152039
+  },
+  {
+   "id": "roIxxQjPmphU4A",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-documentPropertiesCustom.xsd",
+   "size": 2608
+  },
+  {
+   "id": "hxkPwBuH64tmQg",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-spreadsheetDrawing.xsd",
+   "size": 8862
+  },
+  {
+   "id": "0Bu7XE6XrYinSA",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-commonSimpleTypes.xsd",
+   "size": 6382
+  },
+  {
+   "id": "uBrblOmlsbgdGw",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-wordprocessingDrawing.xsd",
+   "size": 14795
+  },
+  {
+   "id": "4S2Jxd2SpGFhkw",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-wordprocessingDrawing.xsd",
+   "size": 4010
+  },
+  {
+   "id": "NbMQPgQoVbtdXA",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-bibliography.xsd",
+   "size": 7328
+  },
+  {
+   "id": "rcxC3CAhxpwxxQ",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-documentPropertiesExtended.xsd",
+   "size": 3507
+  },
+  {
+   "id": "kwD2yxrFXmJZRg",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-main.xsd",
+   "size": 26148
+  },
+  {
+   "id": "9CvCQVcTkVWDBw",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/xml.xsd",
+   "size": 4646
+  },
+  {
+   "id": "buMvvP9QIqfwKw",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-relationshipReference.xsd",
+   "size": 1367
+  },
+  {
+   "id": "BNy8NvF6vhT9hg",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-customXmlDataProperties.xsd",
+   "size": 1248
+  },
+  {
+   "id": "zsYKXMaFCL9bsA",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-documentPropertiesVariantTypes.xsd",
+   "size": 7507
+  },
+  {
+   "id": "eY2xkxHYTv4x8A",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-math.xsd",
+   "size": 23313
+  },
+  {
+   "id": "YE8ohWXClnRhAw",
+   "name": "xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-additionalCharacteristics.xsd",
+   "size": 1269
+  },
+  {
+   "id": "8XLNzxGEP4btcA",
+   "name": "xlsx/scripts/office/validate.py",
+   "size": 6142
+  },
+  {
+   "id": "CUH2RlPCN75g9A",
+   "name": "xlsx/scripts/office/validators/docx.py",
+   "size": 17482
+  },
+  {
+   "id": "SvIgEQ6mtvcwCQ",
+   "name": "xlsx/scripts/office/validators/__init__.py",
+   "size": 336
+  },
+  {
+   "id": "ss84VPK7kr63SA",
+   "name": "xlsx/scripts/office/validators/redlining.py",
+   "size": 11231
+  },
+  {
+   "id": "MXnMDGN6S11ZLQ",
+   "name": "xlsx/scripts/office/validators/pptx.py",
+   "size": 15966
+  },
+  {
+   "id": "r852t2La6JHyGQ",
+   "name": "xlsx/scripts/office/validators/base.py",
+   "size": 34696
+  },
+  {
+   "id": "jM7rmax4EMggxQ",
+   "name": "xlsx/scripts/office/soffice.py",
+   "size": 7901
+  },
+  {
+   "id": "4e6TubQ91Kwe9Q",
+   "name": "xlsx/scripts/office/helpers/__init__.py",
+   "size": 3358
+  },
+  {
+   "id": "hZXHHRxkGLqbvg",
+   "name": "xlsx/scripts/office/helpers/pptx_chart.py",
+   "size": 5862
+  },
+  {
+   "id": "8OYVZl2Xiu5Lpg",
+   "name": "xlsx/scripts/office/helpers/pptx_slide.py",
+   "size": 1675
+  },
+  {
+   "id": "xExNuf8sJoGFMA",
+   "name": "xlsx/scripts/office/helpers/pptx_theme.py",
+   "size": 3510
+  },
+  {
+   "id": "tX7SkQv2XiK2tQ",
+   "name": "xlsx/scripts/layout.py",
+   "size": 3061
+  },
+  {
+   "id": "oagELxXGimnFJQ",
+   "name": "xlsx/scripts/recalc.py",
+   "size": 10755
+  },
+  {
+   "id": "dpCjm2hsHVoywg",
+   "name": "xlsx/scripts/copy_sheet.py",
+   "size": 5205
+  },
+  {
+   "id": "DPDH4oJrz5QMxw",
+   "name": "xlsx/scripts/__pycache__/verify_structure.cpython-312.pyc",
+   "size": 23138
+  },
+  {
+   "id": "NRbexBgZujEiYw",
+   "name": "xlsx/scripts/__pycache__/layout.cpython-312.pyc",
+   "size": 5816
+  },
+  {
+   "id": "718ebxDzQSawmA",
+   "name": "xlsx/scripts/__pycache__/copy_sheet.cpython-312.pyc",
+   "size": 8202
+  },
+  {
+   "id": "J6Sm6fioyJzsRQ",
+   "name": "xlsx/scripts/__pycache__/fit.cpython-312.pyc",
+   "size": 15970
+  },
+  {
+   "id": "sYPUMkrdpM7s7Q",
+   "name": "xlsx/scripts/verify_calculations.py",
+   "size": 3606
+  },
+  {
+   "id": "xxHIgFzCCiQQ1A",
+   "name": "xlsx/scripts/verify_structure.py",
+   "size": 15099
+  },
+  {
+   "id": "GJ6YEYSRMf04bw",
+   "name": "xlsx/SKILL.md",
+   "size": 27550
+  },
+  {
+   "id": "5UmqD2KYAN6ijQ",
+   "name": "xlsx/LICENSE.txt",
+   "size": 1467
+  }
+ ],
+ "user": [
+  {
+   "id": "SCZPmvy6TbxdJg",
+   "name": "user1.csv",
+   "size": 51200
+  },
+  {
+   "id": "LJ0VvMA1xjpEKQ",
+   "name": "user2.csv",
+   "size": 51200
+  },
+  {
+   "id": "EPFuXkIAFBmJBQ",
+   "name": "user3.csv",
+   "size": 51200
+  }
+ ],
+ "tar": {
+  "id": "IHGxKpFhbPWZow",
+  "name": "xlsx.tar.gz",
+  "size": 178119
+ }
+}

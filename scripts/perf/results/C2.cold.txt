@@ -1,0 +1,7 @@
+C2 call=0 ms=1395 status=200 code=0 wall=13 stdout=6 files_ret=22
+C2 call=1 ms=1306 status=200 code=0 wall=14 stdout=6 files_ret=22
+C2 call=2 ms=1311 status=200 code=0 wall=13 stdout=6 files_ret=22
+C2 call=3 ms=1267 status=200 code=0 wall=12 stdout=6 files_ret=22
+C2 call=4 ms=1227 status=200 code=0 wall=11 stdout=6 files_ret=22
+C2 call=5 ms=1287 status=200 code=0 wall=14 stdout=6 files_ret=22
+fs downloads during 6 cold calls: 390

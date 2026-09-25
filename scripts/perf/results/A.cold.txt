@@ -1,0 +1,7 @@
+A call=0 ms=1426 status=200 code=0 wall=18 stdout=6 files_ret=22
+A call=1 ms=1428 status=200 code=0 wall=13 stdout=6 files_ret=22
+A call=2 ms=1400 status=200 code=0 wall=15 stdout=6 files_ret=22
+A call=3 ms=1296 status=200 code=0 wall=13 stdout=6 files_ret=22
+A call=4 ms=1265 status=200 code=0 wall=12 stdout=6 files_ret=22
+A call=5 ms=1321 status=200 code=0 wall=11 stdout=6 files_ret=22
+fs downloads during 6 cold calls: 390
