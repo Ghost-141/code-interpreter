@@ -1,0 +1,234 @@
+--- a/api/src/api/v2.ts
++++ b/api/src/api/v2.ts
+@@ -396,8 +396,10 @@
+  * `index.ts` for the routing-order rationale). Keep the limit configurable:
+  * analyst workflows may send large scripts or replay payloads, while file
+  * bytes should still move through the gateway/file path. */
+-router.post('/execute', express.json({ limit: config.execute_body_limit }), async (req: Request, res: Response) => {
++router.post('/execute', (req: Request, _res: Response, next: NextFunction) => { (req as unknown as { __t0: number }).__t0 = performance.now(); next(); }, express.json({ limit: config.execute_body_limit }), async (req: Request, res: Response) => {
+   const started = performance.now();
++  const __p: Record<string, number> = { body_parse: started - (req as unknown as { __t0: number }).__t0 };
++  let __t = performance.now();
+   let job: Job | undefined;
+   let cleanedUp = false;
+   let activeExecution = false;
+@@ -470,6 +472,7 @@
+         req.headers[RUNTIME_SESSION_ID_HEADER],
+       );
+       metricsLanguage = job.runtime.language;
++      __p.validate_getjob = performance.now() - __t; __t = performance.now();
+       markActiveExecution();
+     } catch (error) {
+       metricsOutcome = 'bad_request';
+@@ -506,10 +509,12 @@
+         'codeapi.language': job.runtime.language,
+       }, () => job!.prime());
+       primeCompleted = true;
++      __p.prime = performance.now() - __t; __t = performance.now();
+       const result = await withSpan('codeapi.sandbox.run', {
+         'codeapi.language': job.runtime.language,
+       }, () => job!.execute());
+ 
++      __p.execute = performance.now() - __t; __t = performance.now();
+       if (result.run === undefined) {
+         result.run = result.compile;
+       }
+@@ -544,8 +549,12 @@
+         }
+       }
+ 
++      __p.upload = performance.now() - __t; __t = performance.now();
+       metricsOutcome = 'success';
+-      return res.status(200).json(result);
++      res.status(200).json(result);
++      __p.respond = performance.now() - __t;
++      (res as unknown as { __wall: number }).__wall = result.run?.wall_time ?? 0;
++      return;
+     } catch (error) {
+       /* Deliberately BEFORE the ValidationError branch below: once priming has
+        * completed, the workspace has been written to, so any later failure —
+@@ -586,7 +595,14 @@
+         message: 'Sandbox execution failed',
+       });
+     } finally {
++      const __tc = performance.now();
+       await cleanupHandler();
++      __p.cleanup = performance.now() - __tc;
++      __p.total_handler = performance.now() - started;
++      if (job) {
++        const r = (x: Record<string, number>) => Object.fromEntries(Object.entries(x).map(([k, v]) => [k, Math.round(v * 10) / 10]));
++        logger.info({ job: job.uuid, files: job.files.length, wall: (res as unknown as { __wall: number }).__wall, phases: r(__p), sub: r(job.phases) }, 'PHASES');
++      }
+     }
+   } finally {
+     if (activeExecution) {
+--- a/api/src/job.ts
++++ b/api/src/job.ts
+@@ -688,6 +688,8 @@
+ }
+ 
+ export class Job {
++  phases: Record<string, number> = {};
++  __m(k: string, t: number): void { this.phases[k] = (this.phases[k] ?? 0) + performance.now() - t; }
+   uuid: string;
+   runtime: Runtime;
+   files: TFile[];
+@@ -950,8 +952,11 @@
+       this.workspaceLease = await this.session.acquire();
+       this.jobIdentity = this.workspaceLease.identity;
+     } else {
++      let __t = performance.now();
+       this.jobIdentity = await acquireJobIdentity(this.log);
++      this.__m('acquire_uid', __t); __t = performance.now();
+       this.workspaceLease = await createSandboxWorkspace(this.jobIdentity);
++      this.__m('create_ws', __t);
+     }
+     this.submissionDir = this.workspaceLease.dir;
+ 
+@@ -968,9 +973,12 @@
+       );
+     }
+ 
++    const __td = performance.now();
+     if (this.fileEgressBaseUrl() && this.files.some(f => f.id && f.storage_session_id)) {
+       await this.autoLoadDirkeep();
+     }
++    this.__m('dirkeep_list', __td);
++    const __tf = performance.now();
+ 
+     /* Promise.all rejects as soon as one operation fails, while its siblings
+      * keep running. The route's finally then calls cleanup(), which clears the
+@@ -1020,6 +1028,7 @@
+     await Promise.allSettled(
+       Array.from({ length: workerCount }, () => runPrimeWorker()),
+     );
++    this.__m('download_files', __tf);
+     if (firstFailure) {
+       if (this.session) {
+         /* A sibling may already have atomically replaced its destination. The
+@@ -1510,6 +1519,7 @@
+       HOME: '/mnt/data',
+     };
+ 
++    const __tb = performance.now();
+     let extraPkgdirs: string[] | undefined;
+     if (this.runtime.language === 'bash') {
+       const linkTarget: { nodeModulesPath?: string } = {};
+@@ -1517,7 +1527,9 @@
+       ensureNodeModulesSymlink(this.submissionDir, linkTarget.nodeModulesPath);
+     }
+ 
++    this.__m('bash_extras', __tb);
+     return execute({
++      phases: this.phases,
+       command,
+       envVars,
+       submissionDir: this.submissionDir,
+@@ -1579,7 +1591,9 @@
+       );
+     }
+ 
++    const __tw = performance.now();
+     await this.handleSessionFiles();
++    this.__m('walk_outputs', __tw);
+ 
+     return {
+       compile,
+@@ -2314,8 +2328,10 @@
+     const jobIdentity = this.jobIdentity;
+ 
+     if (workspaceLease) {
++      const __tc = performance.now();
+       try {
+         workspaceRemoved = await cleanupSandboxWorkspace(workspaceLease);
++        this.__m('rm_ws', __tc);
+       } catch (error) {
+         workspaceRemoved = false;
+         this.log.error({ submissionDir: this.submissionDir, err: error }, 'Failed to clean up');
+--- a/api/src/nsjail.ts
++++ b/api/src/nsjail.ts
+@@ -244,6 +244,8 @@
+     enableToolCallSocket,
+     suppressSuccessLogs,
+   } = opts;
++  const __ph: Record<string, number> = (opts as { phases?: Record<string, number> }).phases ?? {};
++  const __a = performance.now();
+   const logId = nanoid();
+   const logPath = `/tmp/nsjail-${logId}.log`;
+   const cfgPath = `/tmp/nsjail-${logId}.cfg`;
+@@ -278,6 +280,7 @@
+     configMemMax: readBaseConfig().match(/^cgroup_mem_max:\s*(\d+)/m)?.[1] ?? null,
+   }, 'Job memory limits');
+ 
++  __ph.nsj_prep = (__ph.nsj_prep ?? 0) + performance.now() - __a;
+   const startTime = Date.now();
+   const hasStdin = stdin !== undefined && stdin.length > 0;
+ 
+@@ -396,7 +399,8 @@
+    * on a misconfigured nsjail_path or fork-pressure burst). */
+   const childDiedSignal = new AbortController();
+   try {
+-    ({ value: proc, markerSeen, pollError } = await setupGate.runSetup(logPath, () => {
++    let __gr: { gateWaitMs?: number; markerMs?: number };
++    ({ value: proc, markerSeen, pollError } = __gr = await setupGate.runSetup(logPath, () => {
+       const child = spawn(config.nsjail_path, nsjailArgs, {
+         /* stdin always 'pipe' so we have a writable handle to .end() even
+          * when no input is supplied. The child sees EOF on stdin
+@@ -441,6 +445,9 @@
+       });
+       return child;
+     }, childDiedSignal.signal));
++    __ph.gate_wait = (__ph.gate_wait ?? 0) + (__gr.gateWaitMs ?? 0);
++    __ph.spawn_to_marker = (__ph.spawn_to_marker ?? 0) + (__gr.markerMs ?? 0);
++    __ph.__afterGate = performance.now();
+   } catch (err) {
+     try { fs.unlinkSync(logPath); } catch { /* ignore */ }
+     try { fs.unlinkSync(cfgPath); } catch { /* ignore */ }
+@@ -537,6 +544,10 @@
+     proc.once('close', (code, signal) => resolve(decode(code, signal)));
+   });
+   const wallTime = Date.now() - startTime;
++  const __ex = performance.now();
++  __ph.marker_to_exit = (__ph.marker_to_exit ?? 0) + __ex - (__ph.__afterGate ?? __ex);
++  delete __ph.__afterGate;
++  __ph.__exit = __ex;
+ 
+   // Log memory metrics after each execution to track potential leaks.
+   // Reads from /proc/self/cgroup to find the actual cgroup path, then reads
+@@ -624,6 +635,8 @@
+     output += marker;
+   }
+ 
++  __ph.post_exec = (__ph.post_exec ?? 0) + performance.now() - (__ph.__exit ?? performance.now());
++  delete __ph.__exit;
+   return {
+     stdout,
+     stderr,
+--- a/api/src/nsjail-setup-gate.ts
++++ b/api/src/nsjail-setup-gate.ts
+@@ -141,6 +141,7 @@
+     spawn: () => T,
+     abortSignal?: AbortSignal,
+   ): Promise<NsJailSetupGateResult<T>> {
++    const __t0 = performance.now();
+     waiters++;
+     const previous = tail;
+     let releaseSelf: () => void = () => {};
+@@ -158,6 +159,7 @@
+     }
+ 
+     waiters--;
++    const __t1 = performance.now();
+     let value: T;
+     try {
+       value = spawn();
+@@ -168,7 +170,8 @@
+ 
+     const result = await pollForMarker(logPath, abortSignal);
+     releaseSelf();
+-    return { value, markerSeen: result.markerSeen, pollError: result.lastError };
++    const __t2 = performance.now();
++    return { value, markerSeen: result.markerSeen, pollError: result.lastError, gateWaitMs: __t1 - __t0, markerMs: __t2 - __t1 } as NsJailSetupGateResult<T>;
+   }
+ 
+   return {

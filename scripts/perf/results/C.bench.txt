@@ -1,0 +1,4 @@
+C b conc=1 n=12 med=494 p90=515 max=518 ms  wall=14 files_ret=22 out=
+C c conc=3 n=36 med=470 p90=483 max=491 ms  wall=25 files_ret=22 out=6
+C d conc=8 n=96 med=509 p90=549 max=568 ms  wall=33 files_ret=22 out=6
+fs downloads during bench b,c,d REPS=12: 9555

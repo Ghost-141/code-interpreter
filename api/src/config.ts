@@ -97,6 +97,17 @@ export const config = {
     process.env.SANDBOX_INPUT_CACHE_MAX_BYTES,
     512 * 1024 * 1024,
   ),
+  /* Pull-through population of that same cache: after a READ-ONLY input is
+   * downloaded, keep a copy so later executions resolve it locally instead of
+   * paying a file-server round trip per file per job. Read-only refs are
+   * immutable for their id (a skill edit re-uploads under new ids), so a hit
+   * can never serve stale bytes. Off by default — the push backends fill the
+   * cache themselves. */
+  pull_through_cache: (process.env.SANDBOX_PULL_THROUGH_CACHE ?? 'false') === 'true',
+  /* How long a session's `.dirkeep` listing may be reused (0 disables). Only
+   * sessions observed to contain read-only objects exclusively are served
+   * from that cache — a writable session gains markers between turns. */
+  marker_cache_ttl_ms: safeInt(process.env.SANDBOX_MARKER_CACHE_TTL_SECONDS, 0) * 1000,
   /* Bound both validation cost and per-request priming fan-out. The cache's
    * unique-object cap is not enough because one object may be requested at
    * many destinations. */

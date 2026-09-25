@@ -1,0 +1,132 @@
+FROM buildpack-deps:bookworm AS nsjail-builder
+
+WORKDIR /nsjail
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    bison \
+    flex \
+    libprotobuf-dev \
+    libnl-route-3-dev \
+    protobuf-compiler \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN git clone -b master --single-branch https://github.com/google/nsjail.git . \
+    && git checkout 66ad78dc361721512fbf9470488e584364c75489 \
+    && git submodule update --init --recursive
+
+RUN make -j$(nproc)
+
+COPY api/src/spec-guard.c /tmp/spec-guard.c
+RUN gcc -O2 -static -o /usr/local/bin/spec-guard /tmp/spec-guard.c \
+    && chmod 0111 /usr/local/bin/spec-guard
+
+# ============================================================================
+# ====
+# Stage 2: Build sandbox rootfs
+# ============================================================================
+FROM oven/bun:1.3.14-debian AS sandbox-build
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    coreutils \
+    util-linux \
+    bsdextrautils \
+    locales \
+    procps \
+    iptables \
+    bc \
+    file \
+    jq \
+    zip \
+    unzip \
+    debianutils \
+    libnl-route-3-200 \
+    libprotobuf32 \
+    libffi8 \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && libffi=$(find /usr/lib -name 'libffi.so.8' -print -quit) \
+    && { [ -n "$libffi" ] || { echo "libffi.so.8 not found" >&2; exit 1; }; } \
+    && ln -sf "$libffi" "${libffi%.so.8}.so.6"
+
+# Fonts Bangladeshi office documents are set in, and metric-compatible stand-ins
+# for the Microsoft fonts they name. The pdf-to-docx skill matches a PDF's
+# embedded glyphs against the installed original to recover its Bangla text,
+# so a font missing here is text that cannot be recovered. Every download is
+# pinned by sha256; see docs/document-tooling/README.md.
+#
+# Tesseract's `ben` and `eng` models are replaced by tessdata_best, which made
+# about a quarter of the Bangla errors of Debian's models on UGC circulars.
+# curl is needed only for these downloads and is removed again.
+# Restore the standard Debian `awk` -> `mawk` symlink. mawk is Priority:
+# required so its binary is in /usr/bin already, but slim base images skip
+# the mawk postinst's `update-alternatives --install /usr/bin/awk awk
+# /usr/bin/mawk 5` step that normally creates the user-facing `awk`
+# command. Without this, bare `awk ...` in user shell scripts fails with
+# `command not found` even though mawk itself is present. Identical
+# security surface to the existing pure-text utilities (sed, tr,
+# coreutils) — mawk has no system() / getline-from-command extensions
+# in its minimal build.
+RUN [ -x /usr/bin/mawk ] && ln -sf /usr/bin/mawk /usr/bin/awk
+
+# The sandbox mounts only a few files under /etc, so Debian's
+# update-alternatives links (/usr/bin/which -> /etc/alternatives/which,
+# /usr/bin/convert -> /etc/alternatives/convert, ...) dangle inside NsJail and
+# those commands report "not found". Point every such link at its real binary.
+# Debian bookworm's ImageMagick 6 also lacks the IM7 `magick` entry point the
+# document skills call; IM6's convert takes the same argument order.
+RUN find /usr/bin /usr/sbin -lname '/etc/alternatives/*' | while read -r link; do \
+        target=$(readlink -f "$link"); \
+        [ -e "$target" ] && ln -sf "$target" "$link"; \
+    done; \
+    [ -e /usr/bin/which ] || ln -sf /usr/bin/which.debianutils /usr/bin/which; \
+    true
+
+RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
+
+COPY --from=nsjail-builder /nsjail/nsjail /usr/sbin/nsjail
+COPY --from=nsjail-builder /usr/local/bin/spec-guard /usr/local/bin/spec-guard
+RUN chmod +x /usr/sbin/nsjail
+
+# The tool-call socket proxy must run under Node, not Bun. Bun's node:http
+# compat layer never fires `'connection'` events and Bun.serve's idleTimeout
+# does not close silent unix-socket connections — so our DoS protections
+# (maxConnections, idleSocketTimeoutMs, accept-time tracking) silently no-op
+# under Bun and a `for i in range(N): socket.connect` storm pins FDs in the
+# proxy until the OS limit. Pulling just the Node binary from a slim image
+# is ~30 MB and avoids inheriting npm/node_modules from a full apt install.
+COPY --from=node:22-slim /usr/local/bin/node /usr/local/bin/node
+
+WORKDIR /sandbox_api
+
+COPY api/package.json api/bun.lock ./
+RUN bun install --frozen-lockfile
+
+COPY api/tsconfig.json ./
+COPY api/src ./src
+COPY shared /shared
+COPY api/config ./config
+
+RUN bun run build
+
+RUN mkdir -p /pkgs /tmp/sandbox
+
+RUN find / -xdev -perm /6000 -exec chmod ug-s {} + 2>/dev/null || true
+
+RUN rm -f /usr/bin/nsenter /usr/bin/unshare /usr/bin/chroot /usr/sbin/chroot \
+         /usr/bin/perl* /usr/bin/apt /usr/bin/apt-get /usr/bin/dpkg \
+         /usr/sbin/adduser /usr/sbin/useradd /usr/sbin/usermod \
+         /usr/sbin/groupadd /usr/sbin/groupmod \
+         /usr/bin/su \
+         /usr/bin/chfn /usr/bin/chsh /usr/bin/gpasswd /usr/bin/newgrp \
+         /usr/bin/passwd /usr/bin/sg \
+         /usr/bin/chage /usr/bin/expiry /usr/sbin/unix_chkpwd \
+    2>/dev/null || true
+
+COPY api/src/entrypoint.sh ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh
+
+# ============================================================================

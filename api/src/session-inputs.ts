@@ -613,6 +613,53 @@ export async function storeCachedInputs(
   }
 }
 
+/**
+ * Adds one already-downloaded object to the cache (pull-through population).
+ * The bytes are copied from the primed workspace file, so the caller has
+ * already validated and hashed them; this only decides where a later execute
+ * reads them from. Same commit discipline as a pushed batch: stage outside the
+ * cache, evict for the incoming size, then rename metadata before data so a
+ * key is never visible without its sidecar.
+ *
+ * Returns false when the entry already exists or the copy could not be
+ * committed — both are misses, and a miss is always safe.
+ */
+export async function storeCachedInputFile(
+  storageSessionId: string,
+  id: string,
+  sourcePath: string,
+  meta: CachedInputMeta,
+  maxBytes: number,
+  cacheKey?: string,
+): Promise<boolean> {
+  const key = cacheKey ?? inputCacheKey(storageSessionId, id);
+  if (!/^[0-9a-f]{64}$/.test(key)) return false;
+  if (await hasCachedInput(storageSessionId, id, key)) return false;
+
+  await fsp.mkdir(SESSION_INPUT_CACHE_DIR, { recursive: true, mode: 0o700 });
+  const staging = await fsp.mkdtemp(path.join(SESSION_INPUT_CACHE_DIR, '.staging-'));
+  try {
+    const size = (await fsp.stat(sourcePath)).size;
+    if (size > maxBytes) return false;
+    await pruneInputCache(Math.max(0, maxBytes - size));
+
+    const stagedData = path.join(staging, key);
+    const stagedMeta = path.join(staging, `${key}${META_SUFFIX}`);
+    await fsp.copyFile(sourcePath, stagedData);
+    await fsp.chmod(stagedData, 0o600);
+    await fsp.writeFile(stagedMeta, JSON.stringify(meta), { mode: 0o600 });
+
+    await fsp.rename(stagedMeta, path.join(SESSION_INPUT_CACHE_DIR, `${key}${META_SUFFIX}`));
+    await fsp.rename(stagedData, path.join(SESSION_INPUT_CACHE_DIR, key));
+    return true;
+  } catch (error) {
+    logger.debug({ err: error }, 'Session input cache population failed');
+    return false;
+  } finally {
+    await fsp.rm(staging, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
 /** Drops least-recently-used entries until the cache fits `maxBytes`. Eviction
  *  is always safe: a miss simply re-pushes on the next probe. */
 export async function pruneInputCache(maxBytes: number): Promise<void> {

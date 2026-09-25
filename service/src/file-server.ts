@@ -13,6 +13,7 @@ import type * as t from './types';
 import { metricsHandler, fileUploads, fileDownloads } from './metrics';
 import { httpMetricsMiddleware } from './middleware/httpMetrics';
 import { internalServiceAuthEnabled, requireInternalServiceAuth } from './internal-service-auth';
+import { mapWithConcurrency } from './concurrency';
 import { shutdownTelemetry, traceHttpRequest } from './telemetry';
 import logger from './fileServerLogger';
 import { env } from './config';
@@ -608,6 +609,10 @@ function parseObjectName(objectName: string | undefined): { session_id: string; 
   return { session_id, file_id };
 }
 
+/** Stat fan-out for a listing. Bounded so one large session cannot saturate
+ *  the object store on behalf of a single caller. */
+const LISTING_DETAIL_CONCURRENCY = 16;
+
 const detailLevels: Record<t.DetailLevel | string, (obj: BucketItem) => Promise<t.ObjectTypes | Partial<t.ObjectTypes>> | undefined> = {
   simple: async (obj: BucketItem): Promise<Partial<t.SimpleObject>> => obj.name ?? '',
   summary: async (obj: BucketItem): Promise<Partial<t.SummaryObject>> => ({
@@ -663,13 +668,19 @@ app.get('/sessions/:session_id/objects', async (req, res) => {
 
   try {
     const stream = minioClient.listObjects(bucketName, session_id, true);
-    const objects: (t.ObjectTypes | Partial<t.ObjectTypes> | undefined)[] = [];
+    const listed: BucketItem[] = [];
 
     const getDetail = detailLevels[detail as string] ?? detailLevels.simple;
 
     for await (const obj of stream) {
-      objects.push(await getDetail(obj));
+      listed.push(obj);
     }
+
+    /* `normalized` and `full` stat every object. Awaiting that inside the
+     * listing loop made a skill session of ~65 objects cost as many serial
+     * round trips before a sandbox job could start. Batch them, preserving
+     * the listing order the caller relies on. */
+    const objects = await mapWithConcurrency(listed, LISTING_DETAIL_CONCURRENCY, getDetail);
 
     res.json(objects);
   } catch (err) {

@@ -41,7 +41,12 @@ import {
   validateFilePath,
   isValidFilePath,
 } from './validation';
-import { cachedInputResponse, inputCacheKey, openCachedInput } from './session-inputs';
+import {
+  cachedInputResponse,
+  inputCacheKey,
+  openCachedInput,
+  storeCachedInputFile,
+} from './session-inputs';
 
 export {
   DIRKEEP,
@@ -57,6 +62,58 @@ export {
 } from './validation';
 
 const AUTO_LOAD_DIRKEEP_TIMEOUT_MS = 10000;
+
+interface SessionMarker {
+  id: string;
+  name: string;
+  storage_session_id: string;
+}
+
+/** Keys whose pull-through copy is already being written, so N concurrent jobs
+ *  priming the same skill file do one copy rather than N. */
+const cachePopulationsInFlight = new Set<string>();
+
+/**
+ * Per-session `.dirkeep` listings, and whether a session has only ever served
+ * read-only objects to this runner. A listing is reused only for the latter:
+ * a skill session is immutable for its version, while a user's session gains
+ * objects between turns and must be listed afresh. Both maps are per-process
+ * and rebuilt after a restart; losing them costs one listing.
+ */
+const markerCache = new Map<string, { markers: SessionMarker[]; storedAt: number }>();
+const sessionServesOnlyReadOnly = new Map<string, boolean>();
+
+function readCachedMarkers(sid: string): SessionMarker[] | null {
+  if (config.marker_cache_ttl_ms <= 0) return null;
+  if (sessionServesOnlyReadOnly.get(sid) !== true) return null;
+  const entry = markerCache.get(sid);
+  if (!entry) return null;
+  if (Date.now() - entry.storedAt > config.marker_cache_ttl_ms) {
+    markerCache.delete(sid);
+    return null;
+  }
+  return entry.markers;
+}
+
+function rememberMarkers(sid: string, markers: SessionMarker[]): void {
+  if (config.marker_cache_ttl_ms <= 0) return;
+  markerCache.set(sid, { markers, storedAt: Date.now() });
+}
+
+/** One writable object is enough to disqualify a session from marker reuse. */
+function noteObjectReadOnly(sid: string, readOnly: boolean): void {
+  if (config.marker_cache_ttl_ms <= 0) return;
+  const seenSoFar = sessionServesOnlyReadOnly.get(sid);
+  sessionServesOnlyReadOnly.set(sid, (seenSoFar ?? true) && readOnly);
+}
+
+/** Test seam: the caches are process-global, so a test that exercises one
+ *  must not leak state into the next. */
+export function resetSessionCachesForTest(): void {
+  markerCache.clear();
+  sessionServesOnlyReadOnly.clear();
+  cachePopulationsInFlight.clear();
+}
 
 /** Source files used to generate an artifact are implementation details, not outputs. */
 const BLOCKED_GENERATED_OUTPUT_EXTENSIONS = new Set(['.js', '.mjs', '.cjs']);
@@ -1168,6 +1225,11 @@ export class Job {
   private async fetchSessionMarkers(
     sid: string,
   ): Promise<Array<{ id: string; name: string; storage_session_id: string }>> {
+    const cached = readCachedMarkers(sid);
+    if (cached) {
+      this.log.debug({ sessionId: sid }, 'Reusing cached .dirkeep listing');
+      return cached;
+    }
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), AUTO_LOAD_DIRKEEP_TIMEOUT_MS);
     try {
@@ -1181,7 +1243,9 @@ export class Job {
       if (!res.ok) return [];
       const data: unknown = await res.json();
       if (!Array.isArray(data)) return [];
-      return data.filter(isNormalizedObjectForSession(sid));
+      const markers = data.filter(isNormalizedObjectForSession(sid));
+      rememberMarkers(sid, markers);
+      return markers;
     } catch (err) {
       this.log.warn({ sessionId: sid, err }, 'Failed to auto-load .dirkeep markers');
       return [];
@@ -1297,6 +1361,7 @@ export class Job {
           operation.signal,
         );
         const readOnly = response.headers.get('x-read-only')?.toLowerCase() === 'true';
+        noteObjectReadOnly(file.storage_session_id, readOnly);
         this.inputFileHashes.set(originalName, {
           originalId: file.id,
           originalSessionId: file.storage_session_id!,
@@ -1308,6 +1373,7 @@ export class Job {
          * sandbox UID can read them but cannot chmod them back to writable. */
         if (readOnly) {
           await applyReadOnlyInputPermissions(finalPath);
+          this.populateInputCache(file, finalPath);
         }
 
         /* Keep the in-memory TFile in sync with the on-disk name so that
@@ -1388,6 +1454,33 @@ export class Job {
 
   private inputIdentity(file: TFile): string {
     return file.input_cache_key ?? inputCacheKey(file.storage_session_id ?? '', file.id ?? '');
+  }
+
+  /**
+   * Keeps a read-only input for the next execution. Deliberately not awaited:
+   * the copy is local and the job's own priming is already done, so making the
+   * response wait for it would spend latency on a future job's behalf. A
+   * failure is a miss, which costs one download later.
+   */
+  private populateInputCache(file: TFile, sourcePath: string): void {
+    if (!config.pull_through_cache) return;
+    if (!file.id || !file.storage_session_id) return;
+    const key = this.inputIdentity(file);
+    if (cachePopulationsInFlight.has(key)) return;
+    cachePopulationsInFlight.add(key);
+    void storeCachedInputFile(
+      file.storage_session_id,
+      file.id,
+      sourcePath,
+      { readOnly: true },
+      config.input_cache_max_bytes,
+      file.input_cache_key,
+    )
+      .then(stored => {
+        if (stored) this.log.debug({ fileId: file.id }, 'Cached read-only input for later jobs');
+      })
+      .catch(() => {})
+      .finally(() => cachePopulationsInFlight.delete(key));
   }
 
   /**
