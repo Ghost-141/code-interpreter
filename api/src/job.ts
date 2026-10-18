@@ -72,6 +72,9 @@ interface SessionMarker {
 /** Keys whose pull-through copy is already being written, so N concurrent jobs
  *  priming the same skill file do one copy rather than N. */
 const cachePopulationsInFlight = new Set<string>();
+/* Longest a finishing job waits for its own background cache copies before the
+ * workspace they read from is deleted. */
+const CACHE_SETTLE_TIMEOUT_MS = 5000;
 
 /**
  * Per-session `.dirkeep` listings, and whether a session has only ever served
@@ -772,6 +775,7 @@ export class Job {
   private sessionFiles: FileRef[] = [];
   private inheritedRefs: FileRef[] = [];
   private inputFileHashes = new Map<string, InputFileInfo>();
+  private pendingCachePopulations = new Set<Promise<void>>();
   private inputDestinations = new Map<string, TFile>();
   private entryPointName: string | undefined;
   private chmoddedDirs = new Set<string>();
@@ -1468,7 +1472,7 @@ export class Job {
     const key = this.inputIdentity(file);
     if (cachePopulationsInFlight.has(key)) return;
     cachePopulationsInFlight.add(key);
-    void storeCachedInputFile(
+    const population = storeCachedInputFile(
       file.storage_session_id,
       file.id,
       sourcePath,
@@ -1480,7 +1484,26 @@ export class Job {
         if (stored) this.log.debug({ fileId: file.id }, 'Cached read-only input for later jobs');
       })
       .catch(() => {})
-      .finally(() => cachePopulationsInFlight.delete(key));
+      .finally(() => {
+        cachePopulationsInFlight.delete(key);
+        this.pendingCachePopulations.delete(population);
+      });
+    this.pendingCachePopulations.add(population);
+  }
+
+  /**
+   * Lets this job's background cache copies finish before cleanup removes the
+   * workspace they read from; otherwise most of them lose the race and the
+   * cache stays empty. Bounded, because a slow copy must not hold up teardown.
+   */
+  private async settleCachePopulations(): Promise<void> {
+    if (this.pendingCachePopulations.size === 0) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise<void>(resolve => {
+      timer = setTimeout(resolve, CACHE_SETTLE_TIMEOUT_MS);
+    });
+    await Promise.race([Promise.allSettled([...this.pendingCachePopulations]), timeout]);
+    clearTimeout(timer);
   }
 
   /**
@@ -2401,6 +2424,8 @@ export class Job {
       this.jobIdentity = undefined;
       return;
     }
+
+    await this.settleCachePopulations();
 
     let workspaceRemoved = true;
     const workspaceLease = this.workspaceLease;

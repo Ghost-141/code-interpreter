@@ -169,6 +169,22 @@ describe('priming populates the cache', () => {
     await fsp.rm(second, { recursive: true, force: true });
   });
 
+  test('cleanup waits for the copy, so removing the workspace right after still caches it', async () => {
+    await startFileServer({ ro: { body: 'SKILL\n', readOnly: true } });
+    config.file_server_url = baseUrl;
+    tmpDir = await fsp.mkdtemp(path.join(os.tmpdir(), 'pull-through-settle-'));
+
+    const file: TFile = { id: 'ro', storage_session_id: 's1', name: 'skill.md' };
+    const job = makeJob([file]);
+    (job as unknown as { submissionDir: string }).submissionDir = tmpDir;
+    await job.downloadAndWriteFile({ ...file });
+
+    await (job as unknown as { settleCachePopulations(): Promise<void> }).settleCachePopulations();
+    await fsp.rm(tmpDir, { recursive: true, force: true });
+
+    expect(await hasCachedInput('s1', 'ro', inputCacheKey('s1', 'ro'))).toBe(true);
+  });
+
   test('a writable input is fetched every time', async () => {
     await startFileServer({ rw: { body: 'draft\n', readOnly: false } });
     config.file_server_url = baseUrl;
