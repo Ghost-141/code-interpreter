@@ -124,3 +124,35 @@ export async function authorizeSessionOwnership(
   }
   return { authorized: false, reason: 'mismatch', cachedSessionKey: recordedOwner };
 }
+
+/**
+ * A delete whose owner can no longer be proven is still refused, unless the
+ * object is already gone. Ownership records expire (`SESSION_OWNER_TTL`) long
+ * before a client may sweep a file, so without this an absent object answers
+ * 403 forever and the client retries it on every pass; a 404 lets it retire
+ * the reference. A recorded owner who is somebody else is never probed, and a
+ * probe that fails or times out counts as present, so the change fails closed.
+ */
+export async function deniedDeleteTargetsAbsentObject(
+  reason: SessionOwnershipDenial,
+  isAbsent: () => Promise<boolean>,
+): Promise<boolean> {
+  if (reason === 'mismatch') return false;
+  return isAbsent().catch(() => false);
+}
+
+/** True only when the file server answers 404 for the object's metadata. */
+export async function fileServerReportsAbsent(
+  baseUrl: string,
+  session_id: string,
+  fileId: string,
+  headers: Record<string, string>,
+  timeoutMs = 5000,
+): Promise<boolean> {
+  const response = await fetch(
+    `${baseUrl}/sessions/${encodeURIComponent(session_id)}/objects/${encodeURIComponent(fileId)}/metadata`,
+    { headers, signal: AbortSignal.timeout(timeoutMs) },
+  );
+  await response.body?.cancel().catch(() => {});
+  return response.status === 404;
+}

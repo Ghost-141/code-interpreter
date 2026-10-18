@@ -4,7 +4,8 @@ import { connection } from '../queue';
 import { isValidId } from '../utils';
 import { env } from '../config';
 import { resolveSessionKey, parseUploadSessionKeyInput, SessionKeyResolutionError } from '../session-key';
-import { authorizeSessionOwnership } from '../session-ownership';
+import { authorizeSessionOwnership, deniedDeleteTargetsAbsentObject, fileServerReportsAbsent } from '../session-ownership';
+import { internalServiceHeaders } from '../internal-service-auth';
 import { LibreChatJwtAuthProvider, CodeApiJwtAuthError } from '../auth/librechat-jwt';
 import { applyPrincipal, type CodeApiPrincipal } from '../auth/principal';
 import { applyLocalPrincipal } from '../auth/local';
@@ -261,6 +262,22 @@ export const sessionAuth = async (req: AuthenticatedRequest, res: Response, next
      * `session-owner:*` — would hang the request instead of answering. */
     logger.error(`Session ownership lookup failed - Session ID: ${session_id} | File ID: ${fileId}`, err);
     return res.status(500).json({ error: 'Internal server error' });
+  }
+  if (
+    !ownership.authorized &&
+    isDelete &&
+    fileId &&
+    (await deniedDeleteTargetsAbsentObject(ownership.reason, () =>
+      fileServerReportsAbsent(
+        env.FILE_SERVER_URL,
+        session_id as string,
+        fileId,
+        internalServiceHeaders({ Accept: 'application/json' }),
+      ),
+    ))
+  ) {
+    logger.info(`Delete of absent object with unprovable owner - Session ID: ${session_id} | File ID: ${fileId} | Reason: ${ownership.reason}`);
+    return res.status(404).json({ error: 'File not found' });
   }
   if (!ownership.authorized) {
     logger.error(`Unauthorized ${isDelete ? 'delete' : 'download'}: Cached session key: ${ownership.cachedSessionKey} | Expected session key: ${sessionKey} | Session ID: ${session_id} | File ID: ${fileId} | Reason: ${ownership.reason}`);
