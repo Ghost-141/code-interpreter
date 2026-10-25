@@ -452,3 +452,65 @@ describe('downloadAndWriteFile / RFC 5987 round-trip', () => {
     await expect(fsp.access(path.join(parent, 'escape.txt'))).rejects.toThrow();
   });
 });
+
+describe('inputs whose name the filesystem cannot hold', () => {
+  const BANGLA = 'প্রধানমন্ত্রী_স্বর্ণপদক_২০১৯__২০২০_ও_২০২১_প্রদানসংক্রান্ত_জরুরি_বিজ্ঞপ্তি.pdf';
+  /** What the file server stored before the upload charset fix: UTF-8 bytes read as latin1, 397 bytes. */
+  const MOJIBAKE = Buffer.from(BANGLA, 'utf8').toString('latin1');
+
+  function serveAs(file: TFile, name: string, body: string, onRequest?: () => void): void {
+    routes.set(`/sessions/${encodeURIComponent(file.storage_session_id!)}/objects/${encodeURIComponent(file.id!)}`, {
+      status: 200,
+      contentDisposition: `attachment; filename*=UTF-8''${encodeURIComponent(name)}`,
+      body,
+      onRequest,
+    });
+  }
+
+  it('fails a too-long name on the first attempt instead of retrying', async () => {
+    const file: TFile = { id: 'long-id', storage_session_id: 'prev-session', name: BANGLA };
+    let requests = 0;
+    serveAs(file, MOJIBAKE, '%PDF-1.5', () => { requests++; });
+    const job = makeJob([file]);
+    asInternals(job).submissionDir = tmpDir;
+
+    await expect(job.downloadAndWriteFile(file)).rejects.toThrow('255-byte filesystem limit');
+    expect(requests).toBe(1);
+    expect((await fsp.readdir(tmpDir)).filter((n) => n.startsWith('.tmp-'))).toEqual([]);
+  });
+
+  it('skips the unwritable input, mounts the rest, and names it in stderr', async () => {
+    const long: TFile = { id: 'long-id', storage_session_id: 'prev-session', name: BANGLA };
+    const other: TFile = { id: 'other-id', storage_session_id: 'prev-session', name: 'report.docx' };
+    serveAs(long, MOJIBAKE, '%PDF-1.5');
+    serveAs(other, 'report.docx', 'docx bytes');
+    const job = makeJob([long, other], sessionWorkspaceAt(tmpDir, 'rt_skip_long_name'));
+    try {
+      await job.prime();
+      const internals = asInternals(job);
+      expect(await fsp.readFile(path.join(internals.submissionDir, 'report.docx'), 'utf8')).toBe('docx bytes');
+      expect(internals.files.map((f) => f.name)).toEqual(['report.docx']);
+
+      const notice = (job as unknown as {
+        withSkippedInputNotice: (r: { stderr: string; output: string }) => { stderr: string; output: string };
+      }).withSkippedInputNotice({ stderr: 'boom\n', output: 'boom\n' });
+      expect(notice.stderr).toBe(
+        `[sandbox] Input file "${BANGLA}" was not mounted: its name exceeds the 255-byte filesystem limit. Rename it to something shorter and attach it again.\nboom\n`,
+      );
+      expect(notice.output.startsWith('[sandbox] Input file')).toBe(true);
+    } finally {
+      await job.cleanup();
+    }
+  });
+
+  it('still fails the run for other invalid input names', async () => {
+    const escaping: TFile = { id: 'escape-id', storage_session_id: 'prev-session', name: 'fallback.txt' };
+    serveAs(escaping, '../escape.txt', 'nope');
+    const job = makeJob([escaping], sessionWorkspaceAt(tmpDir, 'rt_still_fails'));
+    try {
+      await expect(job.prime()).rejects.toThrow(SessionWorkspaceDirtyError);
+    } finally {
+      await job.cleanup();
+    }
+  });
+});

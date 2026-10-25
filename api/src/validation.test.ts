@@ -7,6 +7,8 @@ import {
   isValidFilePath,
   isDirkeep,
   ValidationError,
+  NameTooLongError,
+  assertSegmentsFit,
 } from './validation';
 
 /* Boundary assertions below are derived from the live `config` object so they
@@ -187,5 +189,23 @@ describe('isValidFilePath', () => {
   it('returns false for empty or shape-violating paths', () => {
     expect(isValidFilePath('', submissionDir)).toBe(false);
     expect(isValidFilePath('a'.repeat(MAX_LEN + 10), submissionDir)).toBe(false);
+  });
+});
+
+describe('assertSegmentsFit', () => {
+  const bangla = 'প্রধানমন্ত্রী_স্বর্ণপদক_২০১৯__২০২০_ও_২০২১_প্রদানসংক্রান্ত_জরুরি_বিজ্ঞপ্তি.pdf';
+
+  it('accepts a long Bangla name that fits in 255 bytes', () => {
+    expect(Buffer.byteLength(bangla)).toBe(205);
+    expect(() => assertSegmentsFit(bangla)).not.toThrow();
+    expect(() => validateFilePath(`docs/${bangla}`, '/tmp/sub')).not.toThrow();
+  });
+
+  it('rejects a segment over 255 bytes even when its character count passes', () => {
+    const mojibake = Buffer.from(bangla, 'utf8').toString('latin1');
+    expect(mojibake.length).toBeLessThan(config.max_path_length);
+    expect(() => validateFilePath(mojibake, '/tmp/sub')).toThrow(NameTooLongError);
+    expect(() => assertSegmentsFit(`ok/${'a'.repeat(256)}`)).toThrow(NameTooLongError);
+    expect(() => assertSegmentsFit('a'.repeat(255))).not.toThrow();
   });
 });

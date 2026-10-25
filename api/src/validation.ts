@@ -48,6 +48,31 @@ export class ValidationError extends Error {
   }
 }
 
+/** Linux NAME_MAX: the longest single path segment, counted in bytes. */
+export const MAX_NAME_BYTES = 255;
+
+/**
+ * A path segment the filesystem cannot create. Deterministic, so it is never
+ * retried; for a by-reference input the job skips that file instead of
+ * failing the whole run.
+ */
+export class NameTooLongError extends ValidationError {
+  constructor(name: string) {
+    super(`File name "${name}" exceeds the ${MAX_NAME_BYTES}-byte filesystem limit`);
+    this.name = 'NameTooLongError';
+  }
+}
+
+/**
+ * `max_path_length` counts UTF-16 units, so a 77-character Bangla name passes
+ * it at 205 bytes and a double-encoded one at 397. NAME_MAX is in bytes.
+ */
+export function assertSegmentsFit(name: string): void {
+  if (name.split('/').some((segment) => Buffer.byteLength(segment, 'utf8') > MAX_NAME_BYTES)) {
+    throw new NameTooLongError(name);
+  }
+}
+
 /** Returns a specific error message if `name` violates length/depth constraints, else null. */
 export function checkPathShape(name: string): string | null {
   if (name.length > config.max_path_length) {
@@ -81,6 +106,7 @@ export function validateFilePath(name: string, submissionDir: string): void {
   }
   const shapeError = checkPathShape(name);
   if (shapeError) throw new ValidationError(shapeError);
+  assertSegmentsFit(name);
   /* Reject non-canonical paths outright. Names like "a/../a/file.txt",
    * "dir/./file.txt", or "dir//file.txt" are normalized away when written
    * to / read from disk, but the raw string stays as the key in

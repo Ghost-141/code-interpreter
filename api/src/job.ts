@@ -35,6 +35,7 @@ import {
   SANDBOX_DIR_MODE,
   SANDBOX_FILE_MODE,
   ValidationError,
+  NameTooLongError,
   hasRunnableSource,
   isDirkeep,
   isValidPathShape,
@@ -777,6 +778,8 @@ export class Job {
   private inputFileHashes = new Map<string, InputFileInfo>();
   private pendingCachePopulations = new Set<Promise<void>>();
   private inputDestinations = new Map<string, TFile>();
+  /** By-reference inputs whose name the filesystem cannot hold; left out of the run. */
+  private skippedInputs = new Set<TFile>();
   private entryPointName: string | undefined;
   private chmoddedDirs = new Set<string>();
   /* Persistent session workspace (stateful mode). When set, the job reuses
@@ -1092,6 +1095,9 @@ export class Job {
       }
       throw firstFailure.error;
     }
+    if (this.skippedInputs.size > 0) {
+      this.files = this.files.filter((file) => !this.skippedInputs.has(file));
+    }
   }
 
   /**
@@ -1112,7 +1118,21 @@ export class Job {
       this.reserveInputDestination(file, file.name);
       return;
     }
-    const name = await this.downloadAndWriteFile(file, 5, 500, context);
+    let name: string;
+    try {
+      name = await this.downloadAndWriteFile(file, 5, 500, context);
+    } catch (error) {
+      if (!(error instanceof NameTooLongError)) throw error;
+      /* One unwritable attachment used to fail every run in the conversation,
+       * since the app re-mounts all of its files each turn. Skip it, and tell
+       * the code's caller why it is missing (see withSkippedInputNotice). */
+      this.log.warn({ fileId: file.id, file: file.name, err: error }, 'Skipped input file');
+      for (const [destination, owner] of this.inputDestinations) {
+        if (owner === file) this.inputDestinations.delete(destination);
+      }
+      this.skippedInputs.add(file);
+      return;
+    }
     if (this.session && file.id) {
       /* Record read-only so the next turn re-downloads it (primedInputId reports
        * read-only primes as not-primed) — a reused on-disk copy could have been
@@ -1404,6 +1424,10 @@ export class Job {
         if (error instanceof ValidationError) {
           try { await fsp.unlink(tempPath); } catch { /* may not exist */ }
           throw error;
+        }
+        if ((error as NodeJS.ErrnoException)?.code === 'ENAMETOOLONG') {
+          try { await fsp.unlink(tempPath); } catch { /* may not exist */ }
+          throw new NameTooLongError(file.name);
         }
         lastError = error instanceof Error ? error : new Error(String(error));
         if (attempt < maxRetries) {
@@ -1698,13 +1722,22 @@ export class Job {
     await this.handleSessionFiles();
 
     return {
-      compile,
-      run,
+      compile: run ? compile : this.withSkippedInputNotice(compile),
+      run: this.withSkippedInputNotice(run),
       language: this.runtime.language,
       version: this.runtime.version.raw,
       session_id: this.outputSessionId,
       files: this.sessionFiles,
     };
+  }
+
+  /** Prefixes stderr with one line per skipped input so the model can tell the user which file is missing. */
+  private withSkippedInputNotice(result: NsJailResult | undefined): NsJailResult | undefined {
+    if (!result || this.skippedInputs.size === 0) return result;
+    const notice = [...this.skippedInputs]
+      .map((file) => `[sandbox] Input file "${file.name}" was not mounted: its name exceeds the 255-byte filesystem limit. Rename it to something shorter and attach it again.\n`)
+      .join('');
+    return { ...result, stderr: notice + result.stderr, output: notice + result.output };
   }
 
   private async handleSessionFiles(): Promise<void> {
