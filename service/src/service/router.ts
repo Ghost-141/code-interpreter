@@ -24,6 +24,7 @@ import { captureTraceCarrier, withSpan } from '../telemetry';
 import { Jobs, Languages } from '../enum';
 import { FileRefAuthorizationError, authorizeRequestedFiles } from './file-authorization';
 import { createUploadSessionRegistrar } from './upload-session';
+import { createUploadParser } from './multipart';
 import { recordSessionOwnership } from '../session-ownership';
 import { prepareSandboxJobSecurity } from '../sandbox-egress';
 import logger from '../logger';
@@ -368,15 +369,7 @@ router.post('/upload', uploadLimiter, async (req: t.AuthenticatedRequest, res: R
     let hasResponded = false;
 
     const planFileSize = planLimits[req.planId ?? '']?.max_file_size ?? planLimits.default.max_file_size;
-    /* preservePath keeps subdirectory components in the multipart filename
-     * (e.g. `pptx/editing.md`). The busboy 1.x default strips to basename,
-     * which collapses skill-file paths and breaks the caller's filename
-     * lookups (skill files look "missing" even when uploaded). */
-    const bb = busboy({
-      headers: req.headers,
-      limits: { fileSize: planFileSize },
-      preservePath: true,
-    });
+    const bb = createUploadParser(req.headers, planFileSize);
 
     const uploadPromises: Promise<t.UploadResult>[] = [];
 
