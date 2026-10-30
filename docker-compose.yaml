@@ -1,3 +1,9 @@
+x-logging: &default-logging
+    driver: json-file
+    options:
+        max-size: "50m"
+        max-file: "5"
+
 services:
     api:
         build:
@@ -5,9 +11,10 @@ services:
             dockerfile: service/Dockerfile
             target: api
         container_name: api
+        logging: *default-logging
         restart: unless-stopped
         ports:
-            - 3112:3112
+            - 127.0.0.1:3112:3112
         environment:
             - LOCAL_MODE=${LOCAL_MODE:-true}
             - CODEAPI_HARDENED_SANDBOX_MODE=${CODEAPI_HARDENED_SANDBOX_MODE:-true}
@@ -58,6 +65,7 @@ services:
             dockerfile: service/Dockerfile
             target: worker
         container_name: service-worker
+        logging: *default-logging
         restart: unless-stopped
         environment:
             - LOCAL_MODE=${LOCAL_MODE:-true}
@@ -96,9 +104,10 @@ services:
             dockerfile: service/Dockerfile.egress-gateway
             target: production
         container_name: egress_gateway
+        logging: *default-logging
         restart: unless-stopped
         ports:
-            - 3190:3190
+            - 127.0.0.1:3190:3190
         environment:
             - SERVICE_NAME=egress-gateway
             - CODEAPI_HARDENED_SANDBOX_MODE=${CODEAPI_HARDENED_SANDBOX_MODE:-true}
@@ -128,6 +137,7 @@ services:
             dockerfile: service/Dockerfile.tool-call-server
             target: production
         container_name: tool_call_server
+        logging: *default-logging
         restart: unless-stopped
         environment:
             - TOOL_CALL_SERVER_PORT=3033
@@ -150,12 +160,13 @@ services:
           dockerfile: api/Dockerfile
           target: sandbox-runner-${KVM_ENABLED:-true}
         container_name: sandbox-runner
+        logging: *default-logging
         restart: always
         privileged: false
         devices:
             - ${KVM_DEVICE_PATH:-/dev/kvm}:/dev/kvm
         ports:
-            - 2000:2000
+            - 127.0.0.1:2000:2000
         volumes:
             - ${SANDBOX_PACKAGES_PATH:-./data/pkgs}:/host-packages:ro
         environment:
@@ -215,9 +226,10 @@ services:
             dockerfile: service/Dockerfile
             target: production
         container_name: file_server
+        logging: *default-logging
         restart: unless-stopped
         ports:
-            - ${CODEAPI_FILE_SERVER_PORT:-13000}:3000
+            - 127.0.0.1:${CODEAPI_FILE_SERVER_PORT:-13000}:3000
         environment:
             - MINIO_BUCKET=test-bucket
             - MINIO_ENDPOINT=minio
@@ -241,18 +253,20 @@ services:
     redis:
         image: redis:7-alpine
         container_name: redis
+        logging: *default-logging
         restart: unless-stopped
         command: redis-server --requirepass ${REDIS_PASSWORD:?set it in .env}
         ports:
-            - ${CODEAPI_REDIS_PORT:-16379}:6379
+            - 127.0.0.1:${CODEAPI_REDIS_PORT:-16379}:6379
 
     minio:
-        image: quay.io/minio/minio
+        image: quay.io/minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
         container_name: minio
+        logging: *default-logging
         restart: unless-stopped
         ports:
-            - ${CODEAPI_MINIO_PORT:-19000}:9000
-            - ${CODEAPI_MINIO_CONSOLE_PORT:-19001}:9001
+            - 127.0.0.1:${CODEAPI_MINIO_PORT:-19000}:9000
+            - 127.0.0.1:${CODEAPI_MINIO_CONSOLE_PORT:-19001}:9001
         volumes:
             - minio_data:/data
         environment:
