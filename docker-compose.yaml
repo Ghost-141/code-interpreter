@@ -50,7 +50,7 @@ services:
             - CODEAPI_INTERNAL_SERVICE_TOKEN=${CODEAPI_INTERNAL_SERVICE_TOKEN:-localdev-internal-service-token}
             - REDIS_HOST=redis
             - REDIS_PORT=6379
-            - REDIS_PASSWORD=${REDIS_PASSWORD:?set it in .env}
+            - REDIS_PASSWORD=localdev
         ulimits:
             nofile:
                 soft: 65536
@@ -83,7 +83,7 @@ services:
             - CODEAPI_INTERNAL_SERVICE_TOKEN=${CODEAPI_INTERNAL_SERVICE_TOKEN:-localdev-internal-service-token}
             - REDIS_HOST=redis
             - REDIS_PORT=6379
-            - REDIS_PASSWORD=${REDIS_PASSWORD:?set it in .env}
+            - REDIS_PASSWORD=localdev
             - PYTHON_CONCURRENCY=${PYTHON_CONCURRENCY:-1}
             - OTHER_CONCURRENCY=${OTHER_CONCURRENCY:-8}
             - SANDBOX_RUN_MEMORY_LIMIT=${SANDBOX_RUN_MEMORY_LIMIT:-}
@@ -121,7 +121,7 @@ services:
             - CODEAPI_INTERNAL_SERVICE_TOKEN=${CODEAPI_INTERNAL_SERVICE_TOKEN:-localdev-internal-service-token}
             - REDIS_HOST=redis
             - REDIS_PORT=6379
-            - REDIS_PASSWORD=${REDIS_PASSWORD:?set it in .env}
+            - REDIS_PASSWORD=localdev
         ulimits:
             nofile:
                 soft: 65536
@@ -145,7 +145,7 @@ services:
             - TOOL_CALL_SESSION_EXPIRY=600
             - REDIS_HOST=redis
             - REDIS_PORT=6379
-            - REDIS_PASSWORD=${REDIS_PASSWORD:?set it in .env}
+            - REDIS_PASSWORD=localdev
             - CODEAPI_INTERNAL_SERVICE_TOKEN=${CODEAPI_INTERNAL_SERVICE_TOKEN:-localdev-internal-service-token}
         ulimits:
             nofile:
@@ -235,12 +235,12 @@ services:
             - MINIO_ENDPOINT=minio
             - MINIO_PORT=9000
             - MINIO_USE_SSL=false
-            - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:?set it in .env}
-            - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:?set it in .env}
+            - MINIO_ACCESS_KEY=minioadmin
+            - MINIO_SECRET_KEY=minioadmin
             - FILE_SERVER_PORT=3000
             - REDIS_HOST=redis
             - REDIS_PORT=6379
-            - REDIS_PASSWORD=${REDIS_PASSWORD:?set it in .env}
+            - REDIS_PASSWORD=localdev
             - CODEAPI_INTERNAL_SERVICE_TOKEN=${CODEAPI_INTERNAL_SERVICE_TOKEN:-localdev-internal-service-token}
         ulimits:
             nofile:
@@ -255,7 +255,7 @@ services:
         container_name: redis
         logging: *default-logging
         restart: unless-stopped
-        command: redis-server --requirepass ${REDIS_PASSWORD:?set it in .env}
+        command: redis-server --requirepass localdev
         ports:
             - 127.0.0.1:${CODEAPI_REDIS_PORT:-16379}:6379
 
@@ -270,8 +270,8 @@ services:
         volumes:
             - minio_data:/data
         environment:
-            - MINIO_ROOT_USER=${MINIO_ROOT_USER:?set it in .env}
-            - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:?set it in .env}
+            - MINIO_ROOT_USER=minioadmin
+            - MINIO_ROOT_PASSWORD=minioadmin
         command: server /data --console-address ":9001"
 
 volumes:
