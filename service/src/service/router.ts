@@ -25,6 +25,7 @@ import { Jobs, Languages } from '../enum';
 import { FileRefAuthorizationError, authorizeRequestedFiles } from './file-authorization';
 import { createUploadSessionRegistrar } from './upload-session';
 import { createUploadParser } from './multipart';
+import { putFileObject } from './forward';
 import { recordSessionOwnership } from '../session-ownership';
 import { prepareSandboxJobSecurity } from '../sandbox-egress';
 import logger from '../logger';
@@ -451,16 +452,13 @@ router.post('/upload', uploadLimiter, async (req: t.AuthenticatedRequest, res: R
         recordSessionOwnership(connection, session_id, sessionKey)
           .then(() => {
             logger.info(`[${INSTANCE_ID}] Upload: Session ID: ${session_id} | User ID: ${userId} | Session key: ${sessionKey}`);
-            return axios.put<t.UploadResult>(
-              `${env.FILE_SERVER_URL}/sessions/${session_id}/objects/${fileId}`,
+            return putFileObject({
+              url: `${env.FILE_SERVER_URL}/sessions/${session_id}/objects/${fileId}`,
               file,
-              {
-                headers: internalServiceHeaders(putHeaders),
-                maxBodyLength: planFileSize,
-                maxContentLength: planFileSize,
-                signal: abortController.signal,
-              },
-            );
+              headers: internalServiceHeaders(putHeaders),
+              maxSize: planFileSize,
+              signal: abortController.signal,
+            });
           })
           .then(response => {
             clearTimeout(uploadTimeout);
@@ -691,16 +689,13 @@ router.post('/upload/batch', uploadLimiter, async (req: t.AuthenticatedRequest, 
           logger.error(`[${INSTANCE_ID}] Batch upload file failed: ${filename} | Session: ${session_id}`, { error: message });
           resolve({ status: 'error', filename, error: message });
         };
-        const forwardFile = (): Promise<void> => axios.put<t.UploadResult>(
-          `${env.FILE_SERVER_URL}/sessions/${session_id}/objects/${fileId}`,
+        const forwardFile = (): Promise<void> => putFileObject({
+          url: `${env.FILE_SERVER_URL}/sessions/${session_id}/objects/${fileId}`,
           file,
-          {
-            headers: internalServiceHeaders(putHeaders),
-            maxBodyLength: planFileSize,
-            maxContentLength: planFileSize,
-            signal: abortController.signal,
-          },
-        ).then(response => {
+          headers: internalServiceHeaders(putHeaders),
+          maxSize: planFileSize,
+          signal: abortController.signal,
+        }).then(response => {
           clearTimeout(uploadTimeout);
           resolve({ status: 'success', filename: response.data.filename, fileId: response.data.fileId });
         }, resolveUploadFailure);
