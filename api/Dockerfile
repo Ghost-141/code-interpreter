@@ -87,6 +87,7 @@ RUN apt-get update && \
     libreoffice-writer \
     libreoffice-calc \
     libreoffice-impress \
+    libreoffice-math \
     fonts-dejavu \
     fonts-liberation \
     fonts-crosextra-carlito \
