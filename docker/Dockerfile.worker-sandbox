@@ -124,6 +124,7 @@ RUN apt-install \
     libreoffice-writer \
     libreoffice-calc \
     libreoffice-impress \
+    libreoffice-math \
     fonts-dejavu \
     fonts-liberation \
     libnl-route-3-200 \
